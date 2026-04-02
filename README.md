@@ -3,6 +3,28 @@
 **Layered Agreement, Traceability & Intent System**  
 **An Agreement Engine.**
 
+**Language:** **English** | [日本語](README.ja.md)
+
+## Table of contents
+
+- [Why LATIS](#why-latis)
+- [Core idea](#core-idea)
+- [What LATIS aims to provide](#what-latis-aims-to-provide)
+- [Design principles](#design-principles)
+- [Proposed schema](#proposed-schema)
+- [Why scopes are modeled as nodes](#why-scopes-are-modeled-as-nodes)
+- [Retrieval shape](#retrieval-shape)
+- [Impact analysis](#impact-analysis)
+- [Initial implementation path](#initial-implementation-path)
+- [Non-goals](#non-goals)
+- [Early direction](#early-direction)
+- [Relationship to OpenSpec](#relationship-to-openspec)
+- [Current status](#current-status)
+- [Why open source](#why-open-source)
+- [Long-term view](#long-term-view)
+- [Contributing](#contributing)
+- [Status note](#status-note)
+
 LATIS is an experimental open-source system for structuring, tracing, and operating agreements in software development.
 
 It starts from a simple observation: specification-driven development works unusually well with AI-assisted coding, but it does not scale gracefully once specifications grow, branch, overlap, and begin to affect one another.
