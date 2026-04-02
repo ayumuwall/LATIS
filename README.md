@@ -5,6 +5,18 @@
 
 **Language:** **English** | [日本語](README.ja.md)
 
+LATIS is an experimental open-source system for structuring, tracing, and operating agreements in software development.
+
+It starts from a simple observation: specification-driven development works unusually well with AI-assisted coding, but it does not scale gracefully once specifications grow, branch, overlap, and begin to affect one another.
+
+Markdown documents remain readable, but they are a poor unit for retrieval, impact analysis, and agent context construction. LATIS explores a different approach: treat agreements, intent, rationale, open questions, and dependencies as first-class structured objects, then render human-readable artifacts from that system when needed.
+
+This project is for people who take AI coding seriously, and for those who still believe specification-driven development has not yet reached its practical limit.
+
+> [!IMPORTANT]
+> This project is still at an early planning and design stage. At this time, there is no application or implementation you can install and run yet.
+> The material in this README is intended primarily to communicate the concept, design direction, data model, and operating model. Please read it as a proposal and discussion baseline rather than as documentation for a finished product.
+
 ## Table of contents
 
 - [Why LATIS](#why-latis)
@@ -17,6 +29,7 @@
 - [Impact analysis](#impact-analysis)
 - [Initial implementation path](#initial-implementation-path)
 - [Non-goals](#non-goals)
+- [Related documents](#related-documents)
 - [Early direction](#early-direction)
 - [Relationship to OpenSpec](#relationship-to-openspec)
 - [Current status](#current-status)
@@ -24,14 +37,6 @@
 - [Long-term view](#long-term-view)
 - [Contributing](#contributing)
 - [Status note](#status-note)
-
-LATIS is an experimental open-source system for structuring, tracing, and operating agreements in software development.
-
-It starts from a simple observation: specification-driven development works unusually well with AI-assisted coding, but it does not scale gracefully once specifications grow, branch, overlap, and begin to affect one another.
-
-Markdown documents remain readable, but they are a poor unit for retrieval, impact analysis, and agent context construction. LATIS explores a different approach: treat agreements, intent, rationale, open questions, and dependencies as first-class structured objects, then render human-readable artifacts from that system when needed.
-
-This project is for people who take AI coding seriously, and for those who still believe specification-driven development has not yet reached its practical limit.
 
 ## Why LATIS
 
@@ -274,6 +279,13 @@ LATIS is not intended to be:
 - a pure graph visualization toy
 - a document editor with a graph attached
 - a system that assumes AI output is authoritative
+
+## Related documents
+
+- [`docs/LATIS_Spec.ja.md`](docs/LATIS_Spec.ja.md) — LATIS definition, boundaries, and core functions (Japanese)
+- [`docs/LATIS_API.ja.md`](docs/LATIS_API.ja.md) — prototype API spec (Japanese)
+- [`docs/LATIS_Operation.ja.md`](docs/LATIS_Operation.ja.md) — daily operations flow and roles (Japanese)
+- [`docs/LATIS_Concerns.ja.md`](docs/LATIS_Concerns.ja.md) — current concerns and proposals (Japanese)
 
 ## Early direction
 
