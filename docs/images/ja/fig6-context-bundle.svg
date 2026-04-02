@@ -1,0 +1,49 @@
+<svg viewBox="0 0 880 500" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <rect width="880" height="500" fill="#ffffff"/>
+  <text x="440" y="24" text-anchor="middle" fill="#1f2328" font-size="14" font-weight="600">コンテキストバンドル生成フロー</text>
+  <defs>
+    <marker id="ab" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#0969da" opacity="0.7"/></marker>
+  </defs>
+  <!-- Step 1 -->
+  <rect x="40" y="44" width="180" height="56" rx="8" fill="#ddf4ff" stroke="#0969da" stroke-opacity="0.5"/>
+  <text x="130" y="68" text-anchor="middle" fill="#0969da" font-size="12" font-weight="600">タスク / 提案</text>
+  <text x="130" y="86" text-anchor="middle" fill="#656d76" font-size="10">「認証フローを変更」</text>
+  <line x1="220" y1="72" x2="280" y2="72" stroke="#0969da" stroke-width="1.5" opacity="0.5" marker-end="url(#ab)"/>
+  <!-- Step 2 -->
+  <rect x="290" y="40" width="240" height="64" rx="8" fill="#f6f8fa" stroke="#d0d7de"/>
+  <text x="410" y="64" text-anchor="middle" fill="#1f2328" font-size="12" font-weight="600">グラフ走査</text>
+  <text x="410" y="82" text-anchor="middle" fill="#656d76" font-size="10">depends_on, scoped_to, conflicts_with を辿る</text>
+  <line x1="530" y1="72" x2="590" y2="72" stroke="#0969da" stroke-width="1.5" opacity="0.5" marker-end="url(#ab)"/>
+  <!-- Step 3 -->
+  <rect x="600" y="44" width="240" height="56" rx="8" fill="#ddf4ff" stroke="#0969da" stroke-opacity="0.4"/>
+  <text x="720" y="68" text-anchor="middle" fill="#0969da" font-size="12" font-weight="600">コンテキストバンドル</text>
+  <text x="720" y="86" text-anchor="middle" fill="#656d76" font-size="10">コンパクトな合意パック</text>
+  <!-- Bundle box -->
+  <line x1="720" y1="100" x2="720" y2="130" stroke="#0969da" stroke-width="1" opacity="0.3" stroke-dasharray="4,3"/>
+  <line x1="720" y1="130" x2="440" y2="152" stroke="#0969da" stroke-width="1" opacity="0.3" stroke-dasharray="4,3"/>
+  <rect x="100" y="152" width="680" height="310" rx="12" fill="#f6f8fa" stroke="#0969da" stroke-opacity="0.2"/>
+  <text x="440" y="145" text-anchor="middle" fill="#0969da" font-size="11" font-weight="700" letter-spacing="0.5">CONTEXT BUNDLE の構成</text>
+  <!-- Items -->
+  <rect x="130" y="178" width="280" height="50" rx="8" fill="#ddf4ff" stroke="#0969da" stroke-opacity="0.3"/>
+  <text x="150" y="200" fill="#0969da" font-size="12" font-weight="600">対象の合意 / 提案</text>
+  <text x="150" y="216" fill="#656d76" font-size="10">直接的な変更対象</text>
+  <rect x="130" y="240" width="280" height="50" rx="8" fill="#fbefff" stroke="#8250df" stroke-opacity="0.3"/>
+  <text x="150" y="262" fill="#8250df" font-size="12" font-weight="600">直接接続された決定・制約</text>
+  <text x="150" y="278" fill="#656d76" font-size="10">depends_on, governs で接続</text>
+  <rect x="130" y="302" width="280" height="50" rx="8" fill="#ffebe9" stroke="#cf222e" stroke-opacity="0.3"/>
+  <text x="150" y="324" fill="#cf222e" font-size="12" font-weight="600">同一スコープの未解決事項</text>
+  <text x="150" y="340" fill="#656d76" font-size="10">ブロッキング要因の可視化</text>
+  <rect x="470" y="178" width="280" height="50" rx="8" fill="#dafbe1" stroke="#1a7f37" stroke-opacity="0.3"/>
+  <text x="490" y="200" fill="#1a7f37" font-size="12" font-weight="600">関連する根拠</text>
+  <text x="490" y="216" fill="#656d76" font-size="10">なぜこうなっているか</text>
+  <rect x="470" y="240" width="280" height="50" rx="8" fill="#fff1e5" stroke="#bc4c00" stroke-opacity="0.3"/>
+  <text x="490" y="262" fill="#bc4c00" font-size="12" font-weight="600">影響候補</text>
+  <text x="490" y="278" fill="#656d76" font-size="10">この変更で影響を受ける可能性</text>
+  <rect x="470" y="302" width="280" height="50" rx="8" fill="#fff8c5" stroke="#9a6700" stroke-opacity="0.3"/>
+  <text x="490" y="324" fill="#9a6700" font-size="12" font-weight="600">スコープサマリー</text>
+  <text x="490" y="340" fill="#656d76" font-size="10">文脈を最小限のテキストで提供</text>
+  <!-- Bottom -->
+  <text x="440" y="392" text-anchor="middle" fill="#0969da" font-size="13" font-weight="700">LESS TEXT IS SUFFICIENT</text>
+  <text x="440" y="414" text-anchor="middle" fill="#656d76" font-size="11">ドキュメント全体ではなく、必要な合意だけを正確に抽出</text>
+  <text x="440" y="434" text-anchor="middle" fill="#656d76" font-size="11">→ エージェントのコンテキストウィンドウを効率的に利用</text>
+</svg>

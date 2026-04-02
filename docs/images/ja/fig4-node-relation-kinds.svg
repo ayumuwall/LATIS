@@ -1,0 +1,46 @@
+<svg viewBox="0 0 880 440" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <rect width="880" height="440" fill="#ffffff"/>
+  <text x="440" y="28" text-anchor="middle" fill="#1f2328" font-size="14" font-weight="600">ノード種別とリレーション種別</text>
+  <!-- Node kinds -->
+  <text x="200" y="60" text-anchor="middle" fill="#1f2328" font-size="13" font-weight="600">Node Kinds</text>
+  <rect x="50" y="74" width="300" height="340" rx="10" fill="#f6f8fa" stroke="#d0d7de"/>
+  <rect x="80" y="96" width="110" height="34" rx="17" fill="#ddf4ff" stroke="#0969da" stroke-opacity="0.5"/>
+  <text x="135" y="118" text-anchor="middle" fill="#0969da" font-size="12" font-weight="600">agreement</text>
+  <rect x="210" y="96" width="110" height="34" rx="17" fill="#ffebe9" stroke="#cf222e" stroke-opacity="0.4"/>
+  <text x="265" y="118" text-anchor="middle" fill="#cf222e" font-size="12" font-weight="600">question</text>
+  <rect x="80" y="146" width="110" height="34" rx="17" fill="#fff8c5" stroke="#9a6700" stroke-opacity="0.5"/>
+  <text x="135" y="168" text-anchor="middle" fill="#9a6700" font-size="12" font-weight="600">scope</text>
+  <rect x="210" y="146" width="110" height="34" rx="17" fill="#fbefff" stroke="#8250df" stroke-opacity="0.5"/>
+  <text x="265" y="168" text-anchor="middle" fill="#8250df" font-size="12" font-weight="600">intent</text>
+  <rect x="80" y="196" width="110" height="34" rx="17" fill="#dafbe1" stroke="#1a7f37" stroke-opacity="0.5"/>
+  <text x="135" y="218" text-anchor="middle" fill="#1a7f37" font-size="12" font-weight="600">rationale</text>
+  <rect x="210" y="196" width="110" height="34" rx="17" fill="#ddf4ff" stroke="#0969da" stroke-opacity="0.3"/>
+  <text x="265" y="218" text-anchor="middle" fill="#0969da" font-size="12" font-weight="600">artifact</text>
+  <rect x="145" y="246" width="110" height="34" rx="17" fill="#fbefff" stroke="#8250df" stroke-opacity="0.3"/>
+  <text x="200" y="268" text-anchor="middle" fill="#8250df" font-size="12" font-weight="600">task</text>
+  <text x="200" y="320" text-anchor="middle" fill="#656d76" font-size="11">kind フィールドは拡張可能。</text>
+  <text x="200" y="338" text-anchor="middle" fill="#656d76" font-size="11">スキーマを変えずに</text>
+  <text x="200" y="356" text-anchor="middle" fill="#656d76" font-size="11">新しい種別を追加できる。</text>
+  <!-- Relation kinds -->
+  <text x="660" y="60" text-anchor="middle" fill="#1f2328" font-size="13" font-weight="600">Relation Kinds</text>
+  <rect x="480" y="74" width="360" height="340" rx="10" fill="#f6f8fa" stroke="#d0d7de"/>
+  <g font-family="SFMono-Regular, Consolas, monospace">
+    <text x="510" y="112" fill="#8250df" font-size="13" font-weight="600">contains</text>
+    <text x="660" y="112" fill="#656d76" font-size="11" font-family="Segoe UI, Helvetica, Arial, sans-serif">親子の包含関係</text>
+    <text x="510" y="148" fill="#8250df" font-size="13" font-weight="600">depends_on</text>
+    <text x="660" y="148" fill="#656d76" font-size="11" font-family="Segoe UI, Helvetica, Arial, sans-serif">依存関係</text>
+    <text x="510" y="184" fill="#cf222e" font-size="13" font-weight="600">conflicts_with</text>
+    <text x="660" y="184" fill="#656d76" font-size="11" font-family="Segoe UI, Helvetica, Arial, sans-serif">競合・矛盾</text>
+    <text x="510" y="220" fill="#1a7f37" font-size="13" font-weight="600">supports</text>
+    <text x="660" y="220" fill="#656d76" font-size="11" font-family="Segoe UI, Helvetica, Arial, sans-serif">裏付け・支持</text>
+    <text x="510" y="256" fill="#9a6700" font-size="13" font-weight="600">scoped_to</text>
+    <text x="660" y="256" fill="#656d76" font-size="11" font-family="Segoe UI, Helvetica, Arial, sans-serif">スコープへの所属</text>
+    <text x="510" y="292" fill="#0969da" font-size="13" font-weight="600">governs</text>
+    <text x="660" y="292" fill="#656d76" font-size="11" font-family="Segoe UI, Helvetica, Arial, sans-serif">統治・支配</text>
+    <text x="510" y="328" fill="#0969da" font-size="13" font-weight="600">specializes</text>
+    <text x="660" y="328" fill="#656d76" font-size="11" font-family="Segoe UI, Helvetica, Arial, sans-serif">特殊化・詳細化</text>
+    <text x="510" y="364" fill="#cf222e" font-size="13" font-weight="600">exception_to</text>
+    <text x="660" y="364" fill="#656d76" font-size="11" font-family="Segoe UI, Helvetica, Arial, sans-serif">例外ルール</text>
+  </g>
+  <text x="660" y="398" text-anchor="middle" fill="#656d76" font-size="11" font-family="Segoe UI, Helvetica, Arial, sans-serif">すべて明示的・有向・型付き。is_inferred で推論由来を区別。</text>
+</svg>

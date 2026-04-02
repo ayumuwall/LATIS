@@ -24,6 +24,8 @@ As projects grow, teams and agents alike run into the same problems:
 - every meaningful change risks pulling too much irrelevant context into the prompt
 - impact is often guessed rather than traced
 
+![Document-centric vs agreement-centric](docs/images/en/fig1-doc-vs-agreement.svg)
+
 LATIS is an attempt to make specification-driven development more scalable, without giving up the clarity that made it attractive in the first place.
 
 ## Core idea
@@ -31,6 +33,8 @@ LATIS is an attempt to make specification-driven development more scalable, with
 LATIS does not treat a document as the fundamental unit.
 
 Instead, it models development knowledge as a layered agreement structure:
+
+![Six conceptual layers](docs/images/en/fig2-concept-layers.svg)
 
 - **Agreement** — what has been decided
 - **Intent** — what the system or change is trying to achieve
@@ -100,6 +104,8 @@ This is why LATIS does not model scopes as a simple tag or category. In LATIS, a
 
 LATIS can begin with four canonical tables.
 
+![Entity relationship diagram](docs/images/en/fig3-er-diagram.svg)
+
 #### `nodes`
 Stores the first-class units of meaning.
 
@@ -124,6 +130,8 @@ Typical node kinds may include:
 - `task`
 
 The exact set can evolve. What matters is that the model can distinguish kinds without changing its shape.
+
+![Node kinds and relation kinds](docs/images/en/fig4-node-relation-kinds.svg)
 
 #### `relations`
 Stores typed directed connections between nodes.
@@ -186,6 +194,8 @@ A scope in LATIS is not just a label such as `Inbox` or `Search`.
 
 If scopes were only categories, they could classify nodes, but they could not do much else. They would not naturally support hierarchy, local zooming, named structural grouping, or scoped impact traversal.
 
+![Example scope tree](docs/images/en/fig5-scope-tree.svg)
+
 By treating a scope as a node, LATIS can express things like:
 
 - `Message List` is part of `Inbox Experience`
@@ -199,6 +209,8 @@ This makes scope less like a flat tag and more like a lightweight structural jun
 
 The retrieval layer should not operate on whole documents by default. It should assemble compact context bundles from the graph.
 
+![Context bundle generation flow](docs/images/en/fig6-context-bundle.svg)
+
 A minimal bundle might include:
 
 - the target agreement or proposal
@@ -210,9 +222,19 @@ A minimal bundle might include:
 
 One of the reasons LATIS exists is to make less text sufficient.
 
+## Impact analysis
+
+When an agreement changes, what is affected? LATIS aims to visualize impact scope automatically through graph traversal.
+
+![Impact propagation visualization](docs/images/en/fig8-impact-analysis.svg)
+
+This provides traceability rather than guesswork. Unresolved questions that block a change can be surfaced explicitly.
+
 ## Initial implementation path
 
 A realistic early implementation could use:
+
+![Implementation architecture](docs/images/en/fig7-architecture.svg)
 
 - SQLite for canonical storage
 - FTS for lexical retrieval
@@ -239,6 +261,8 @@ The initial exploration is centered on these questions:
 2. Can agent context be reduced to the minimum relevant agreement set without losing critical intent?
 3. Can changes be reviewed through impact and rationale rather than raw text diff alone?
 4. Can layered scopes become a better interface than a single global dependency graph?
+
+![Four questions](docs/images/en/fig9-questions.svg)
 
 ## Relationship to OpenSpec
 

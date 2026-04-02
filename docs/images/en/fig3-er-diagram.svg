@@ -1,0 +1,57 @@
+<svg viewBox="0 0 880 500" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <rect width="880" height="500" fill="#ffffff"/>
+  <text x="440" y="28" text-anchor="middle" fill="#1f2328" font-size="14" font-weight="600">Entity Relationship Diagram</text>
+  <!-- nodes -->
+  <rect x="60" y="50" width="320" height="200" rx="10" fill="#f0f7ff" stroke="#0969da" stroke-opacity="0.5"/>
+  <rect x="60" y="50" width="320" height="34" rx="10" fill="#ddf4ff"/>
+  <rect x="60" y="76" width="320" height="8" rx="0" fill="#f0f7ff"/>
+  <text x="220" y="73" text-anchor="middle" fill="#0969da" font-size="14" font-weight="700" font-family="SFMono-Regular, Consolas, monospace">nodes</text>
+  <text x="80" y="108" fill="#656d76" font-size="12" font-family="SFMono-Regular, Consolas, monospace"><tspan fill="#0969da" font-weight="600">id</tspan>  uuid PK</text>
+  <text x="80" y="130" fill="#656d76" font-size="12" font-family="SFMono-Regular, Consolas, monospace"><tspan fill="#1f2328">kind</tspan>  agreement | question | scope ...</text>
+  <text x="80" y="152" fill="#656d76" font-size="12" font-family="SFMono-Regular, Consolas, monospace"><tspan fill="#1f2328">title</tspan>  text</text>
+  <text x="80" y="174" fill="#656d76" font-size="12" font-family="SFMono-Regular, Consolas, monospace"><tspan fill="#1f2328">body</tspan>  text</text>
+  <text x="80" y="196" fill="#656d76" font-size="12" font-family="SFMono-Regular, Consolas, monospace"><tspan fill="#1f2328">state</tspan>  draft | active | superseded</text>
+  <text x="80" y="218" fill="#656d76" font-size="12" font-family="SFMono-Regular, Consolas, monospace"><tspan fill="#1f2328">created_at / updated_at</tspan></text>
+  <!-- relations -->
+  <rect x="500" y="50" width="340" height="200" rx="10" fill="#faf5ff" stroke="#8250df" stroke-opacity="0.5"/>
+  <rect x="500" y="50" width="340" height="34" rx="10" fill="#fbefff"/>
+  <rect x="500" y="76" width="340" height="8" rx="0" fill="#faf5ff"/>
+  <text x="670" y="73" text-anchor="middle" fill="#8250df" font-size="14" font-weight="700" font-family="SFMono-Regular, Consolas, monospace">relations</text>
+  <text x="520" y="108" fill="#656d76" font-size="12" font-family="SFMono-Regular, Consolas, monospace"><tspan fill="#8250df" font-weight="600">id</tspan>  uuid PK</text>
+  <text x="520" y="130" fill="#656d76" font-size="12" font-family="SFMono-Regular, Consolas, monospace"><tspan fill="#1f2328">from_node_id</tspan>  FK → nodes</text>
+  <text x="520" y="152" fill="#656d76" font-size="12" font-family="SFMono-Regular, Consolas, monospace"><tspan fill="#1f2328">to_node_id</tspan>  FK → nodes</text>
+  <text x="520" y="174" fill="#656d76" font-size="12" font-family="SFMono-Regular, Consolas, monospace"><tspan fill="#1f2328">relation_kind</tspan>  depends_on | ...</text>
+  <text x="520" y="196" fill="#656d76" font-size="12" font-family="SFMono-Regular, Consolas, monospace"><tspan fill="#1f2328">is_inferred</tspan>  boolean</text>
+  <text x="520" y="218" fill="#656d76" font-size="12" font-family="SFMono-Regular, Consolas, monospace"><tspan fill="#1f2328">priority</tspan>  integer</text>
+  <!-- FK arrows -->
+  <path d="M 380 128 Q 440 128 440 136 Q 440 144 500 138" fill="none" stroke="#0969da" stroke-width="1.5" stroke-dasharray="6,3" opacity="0.5"/>
+  <path d="M 380 150 Q 440 150 440 154 Q 440 158 500 158" fill="none" stroke="#0969da" stroke-width="1.5" stroke-dasharray="6,3" opacity="0.5"/>
+  <!-- provenance -->
+  <rect x="60" y="300" width="320" height="170" rx="10" fill="#f0fff4" stroke="#1a7f37" stroke-opacity="0.5"/>
+  <rect x="60" y="300" width="320" height="34" rx="10" fill="#dafbe1"/>
+  <rect x="60" y="326" width="320" height="8" rx="0" fill="#f0fff4"/>
+  <text x="220" y="323" text-anchor="middle" fill="#1a7f37" font-size="14" font-weight="700" font-family="SFMono-Regular, Consolas, monospace">provenance</text>
+  <text x="80" y="358" fill="#656d76" font-size="12" font-family="SFMono-Regular, Consolas, monospace"><tspan fill="#1a7f37" font-weight="600">id</tspan>  uuid PK</text>
+  <text x="80" y="380" fill="#656d76" font-size="12" font-family="SFMono-Regular, Consolas, monospace"><tspan fill="#1f2328">target_type / target_id</tspan>  poly FK</text>
+  <text x="80" y="402" fill="#656d76" font-size="12" font-family="SFMono-Regular, Consolas, monospace"><tspan fill="#1f2328">actor</tspan>  text</text>
+  <text x="80" y="424" fill="#656d76" font-size="12" font-family="SFMono-Regular, Consolas, monospace"><tspan fill="#1f2328">source_ref</tspan>  text</text>
+  <text x="80" y="446" fill="#656d76" font-size="12" font-family="SFMono-Regular, Consolas, monospace"><tspan fill="#1f2328">reason</tspan>  text</text>
+  <!-- revisions -->
+  <rect x="500" y="300" width="340" height="170" rx="10" fill="#fff5f5" stroke="#cf222e" stroke-opacity="0.4"/>
+  <rect x="500" y="300" width="340" height="34" rx="10" fill="#ffebe9"/>
+  <rect x="500" y="326" width="340" height="8" rx="0" fill="#fff5f5"/>
+  <text x="670" y="323" text-anchor="middle" fill="#cf222e" font-size="14" font-weight="700" font-family="SFMono-Regular, Consolas, monospace">revisions</text>
+  <text x="520" y="358" fill="#656d76" font-size="12" font-family="SFMono-Regular, Consolas, monospace"><tspan fill="#cf222e" font-weight="600">id</tspan>  uuid PK</text>
+  <text x="520" y="380" fill="#656d76" font-size="12" font-family="SFMono-Regular, Consolas, monospace"><tspan fill="#1f2328">target_type / target_id</tspan>  poly FK</text>
+  <text x="520" y="402" fill="#656d76" font-size="12" font-family="SFMono-Regular, Consolas, monospace"><tspan fill="#1f2328">change_type</tspan>  create | update | ...</text>
+  <text x="520" y="424" fill="#656d76" font-size="12" font-family="SFMono-Regular, Consolas, monospace"><tspan fill="#1f2328">snapshot</tspan>  json</text>
+  <text x="520" y="446" fill="#656d76" font-size="12" font-family="SFMono-Regular, Consolas, monospace"><tspan fill="#1f2328">created_at</tspan>  timestamp</text>
+  <defs>
+    <marker id="ag" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1a7f37" opacity="0.6"/></marker>
+    <marker id="ar" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#cf222e" opacity="0.6"/></marker>
+  </defs>
+  <path d="M 220 300 L 220 260" fill="none" stroke="#1a7f37" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.5" marker-end="url(#ag)"/>
+  <path d="M 670 300 L 670 260" fill="none" stroke="#cf222e" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.5" marker-end="url(#ar)"/>
+  <text x="152" y="280" fill="#1a7f37" font-size="10" opacity="0.8">Where it came from &amp; why</text>
+  <text x="610" y="280" fill="#cf222e" font-size="10" opacity="0.8">What changed &amp; how</text>
+</svg>
