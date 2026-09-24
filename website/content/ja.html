@@ -1,0 +1,283 @@
+<section class="hero" aria-labelledby="hero-title">
+  <p class="eyebrow">
+    <span class="status-dot"></span> オープンソース · 設計・プロトタイピング段階
+  </p>
+  <p class="full-name">Layered Agreement, Traceability &amp; Intent System</p>
+  <h1 id="hero-title" lang="en">An Agreement<br /><span>Engine.</span></h1>
+  <div class="hero-bottom">
+    <div>
+      <p class="lead">ソフトウェア開発の合意を管理する。</p>
+      <p class="hero-description">
+        LATISは、何に合意したか、なぜそう決めたか、どの仕様に関係するかを構造化して管理する合意エンジンです。変更時には既存の合意や依存関係を確認し、人間が判断してから反映します。
+      </p>
+      <div class="actions">
+        <a class="button" href="$repository"
+          >GitHubで見る <span aria-hidden="true">↗</span></a
+        ><a class="text-link" href="#concept"
+          >基本アイデアを読む <span aria-hidden="true">↓</span></a
+        >
+      </div>
+    </div>
+    <div class="hero-note">
+      <span class="mono">管理するもの</span>
+      <p>合意の状態と<br /><em>仕様間の関係。</em></p>
+      <span class="mono">状態 / 関係 / 履歴</span>
+    </div>
+  </div>
+  <p class="availability">
+    現在は設計・プロトタイピング段階のOSSです。以下は設計中のモデルと運用方法の説明です。インストールして使えるアプリケーションはまだありません。
+  </p>
+</section>
+<section class="section split" id="problem" aria-labelledby="problem-title">
+  <div>
+    <p class="eyebrow">01 / 仕様管理の課題</p>
+    <h2 id="problem-title">仕様が増えると、<br />決定の経緯を追いにくい。</h2>
+  </div>
+  <div>
+    <p class="large-copy">
+      AIコーディングでは、仕様を明文化することが役立ちます。一方、プロジェクトが大きくなると、複数の文書にまたがる仕様や決定の管理が難しくなります。
+    </p>
+    <p>
+      なぜその仕様になったのか。変更すると、どこに影響するのか。理由や依存関係が記録されていなければ、人間もエージェントも、文書や議論を探し直す必要があります。
+    </p>
+    <p>
+      Markdownは読み書きやレビューに適しています。ただ、文書単位で情報を探して渡す方法では、変更に関係する決定を特定しにくく、エージェントに無関係な情報まで渡しがちです。
+    </p>
+    <p class="margin-note">
+      LATISでは、個々の合意とその関係を、検索や影響確認の単位にします。
+    </p>
+  </div>
+</section>
+<section class="section" id="concept" aria-labelledby="concept-title">
+  <div class="split">
+    <div>
+      <p class="eyebrow">02 / 基本アイデア</p>
+      <h2 id="concept-title">合意の理由と、<br />仕様同士の関係を残す。</h2>
+    </div>
+    <div>
+      <p class="large-copy">
+        何が決まり、何が未解決で、どの決定に依存しているかを明示します。
+      </p>
+      <p>
+        合意・意図・根拠・未解決事項を、それぞれ識別できるデータとして保持します。「依存する」「競合する」などの関係を記録し、スコープで機能や領域ごとにまとめます。誰が、何を根拠に決め、どう変更したかも記録の対象です。
+      </p>
+    </div>
+  </div>
+  <figure class="concept-figure">
+    <div
+      class="graph"
+      role="img"
+      aria-label="設計中のデータモデル。合意に、意図、根拠、未解決事項、依存先を関連付ける。スコープは機能や領域ごとに合意をまとめる。出所と変更履歴も記録する。"
+    >
+      <div class="scope-label mono">
+        SCOPE <span>/ 機能や領域ごとに合意をまとめる</span>
+      </div>
+      <svg
+        class="graph-lines"
+        viewBox="0 0 1000 340"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <path
+          d="M210 90L500 170M210 260L500 170M500 170L790 90M500 170L790 260"
+        />
+      </svg>
+      <div class="graph-node intent">
+        <span class="mono">INTENT / 意図</span
+        ><strong>何を達成したいのか</strong>
+      </div>
+      <div class="graph-node rationale">
+        <span class="mono">RATIONALE / 根拠</span
+        ><strong>なぜこの決定なのか</strong>
+      </div>
+      <div class="graph-node agreement">
+        <span class="mono">AGREEMENT / 合意</span
+        ><strong>何が決定されたか</strong
+        ><span class="node-state">state: accepted</span>
+      </div>
+      <div class="graph-node question">
+        <span class="mono">OPEN QUESTION / 未解決事項</span
+        ><strong>何がまだ決まっていないか</strong>
+      </div>
+      <div class="graph-node dependency">
+        <span class="mono">DEPENDENCY / 依存</span
+        ><strong>何に依存しているか</strong>
+      </div>
+    </div>
+    <figcaption>
+      <span>データモデルの概念図 · 合意から理由や依存先を辿る。</span
+      ><span class="mono">出所・来歴 + 変更履歴</span>
+    </figcaption>
+  </figure>
+  <p class="section-tail">
+    Markdownは引き続き、取り込み・書き出し・レビュー・表示に使います。合意の状態と関係はLATISの構造化モデルで管理し、Markdownだけを正本にはしません。
+  </p>
+</section>
+<section
+  class="section consultation"
+  id="consult"
+  aria-labelledby="consult-title"
+>
+  <p class="eyebrow">03 / 運用原則</p>
+  <h2 id="consult-title">書く前に、打診する。</h2>
+  <p class="large-copy intro">
+    変更要求をいきなり確定仕様として書かず、まず提案としてLATISに照会します。既存の合意との競合や依存関係を確認し、人間が採用するかどうかを決めます。
+  </p>
+  <ol class="flow">
+    <li>
+      <span class="mono step">01 / INPUT</span>
+      <h3>変更要求</h3>
+      <p>意図を整理し、<strong>Proposal（提案）</strong>にする。</p>
+    </li>
+    <li>
+      <span class="mono step">02 / CONSULT</span>
+      <h3>LATISに打診</h3>
+      <p>既存合意・競合・依存・スコープ・未解決事項を確認する。</p>
+    </li>
+    <li>
+      <span class="mono step">03 / DECIDE</span>
+      <h3>人間が判断</h3>
+      <p>照会結果を確認し、採用・修正・見送りを決める。</p>
+    </li>
+    <li>
+      <span class="mono step">04 / APPLY</span>
+      <h3>採択した変更</h3>
+      <p>採用した内容を合意に反映し、出所と変更履歴を保存する。</p>
+    </li>
+  </ol>
+  <div class="consult-note">
+    <strong
+      >打診だけでは合意を変更しません。採択した変更だけを保存します。</strong
+    >
+    <p>
+      打診セッション自体は原則として保存しません。採択後に合意を更新し、必要に応じて文書にも反映します。LATISは判断に必要な情報を返しますが、仕様の正しさや矛盾の解決を自動で決めるものではありません。
+    </p>
+  </div>
+  <details>
+    <summary>
+      具体例：検索結果の並び順を変える <span aria-hidden="true">+</span>
+    </summary>
+    <div class="example">
+      <p><strong>提案：</strong>検索結果を新しい順に表示したい。</p>
+      <p>
+        <strong>既存合意：</strong
+        >既定は関連度順。ピン留め項目の優先順位も、まだ未解決。
+      </p>
+      <p>
+        <strong>判断：</strong
+        >既存合意を置き換えるか、適用するスコープを絞るか、提案を修正するか。人間が判断した後に、採択した変更を反映します。
+      </p>
+      <a href="$repository/blob/main/docs/LATIS_API.ja.md"
+        >API設計の具体例を読む ↗</a
+      >
+    </div>
+  </details>
+</section>
+<section class="section split" id="context" aria-labelledby="context-title">
+  <div>
+    <p class="eyebrow">04 / エージェントに渡す情報</p>
+    <h2 id="context-title">今のタスクに必要な<br />情報を渡す。</h2>
+    <p class="principle">AIと連携でき、AIに依存しない。</p>
+  </div>
+  <div>
+    <p class="large-copy">
+      仕様書を丸ごと渡す代わりに、タスクに関係する合意や制約をまとめます。
+    </p>
+    <p>
+      これをコンパクトなコンテキストバンドルとして返す設計です。決定の根拠、同じスコープの未解決事項、対象となる機能や領域の要約も含めます。
+    </p>
+    <div class="bundle">
+      <div class="mono">タスク → 関連する情報</div>
+      <ul>
+        <li>関連する合意と制約</li>
+        <li>決定の根拠</li>
+        <li>未解決事項</li>
+        <li>対象の機能・領域の要約</li>
+      </ul>
+    </div>
+    <p>
+      人間も同じ合意や関係を確認できます。AIは検索や問い合わせの補助に使えても、合意のデータモデル自体はAIの生成結果に依存しません。
+    </p>
+  </div>
+</section>
+<section class="section" id="comparison" aria-labelledby="comparison-title">
+  <p class="eyebrow">05 / 文書中心の管理との違い</p>
+  <h2 id="comparison-title">管理の単位を、文書から合意へ。</h2>
+  <div class="comparison">
+    <div>
+      <h3>文書中心</h3>
+      <ol>
+        <li>文書</li>
+        <li>セクション</li>
+        <li>テキストの差分</li>
+        <li>エージェントが文書を読む</li>
+      </ol>
+    </div>
+    <div>
+      <h3>LATIS <span class="mono">設計構想</span></h3>
+      <ol>
+        <li>合意</li>
+        <li>型付きの関係</li>
+        <li>影響・根拠・スコープ</li>
+        <li>問い合わせに応じた文脈</li>
+      </ol>
+    </div>
+  </div>
+  <p class="section-tail">
+    LATISは、OpenSpecのような仕様主導ワークフローと、仕様を明確にして開発を進める考え方を共有しています。LATISではさらに、合意や関係を文書から独立したデータとして扱います。
+  </p>
+</section>
+<section class="section split" id="direction" aria-labelledby="direction-title">
+  <div>
+    <p class="eyebrow">06 / 現在の方向性</p>
+    <h2 id="direction-title">SQLiteを中心とした<br />シンプルな構成。</h2>
+    <p>プロトタイプで想定する構成</p>
+  </div>
+  <div>
+    <dl class="architecture">
+      <div>
+        <dt>保存</dt>
+        <dd>SQLite、型付きノード、型付き有向関係</dd>
+      </div>
+      <div>
+        <dt>検索</dt>
+        <dd>FTS、任意のベクトル検索</dd>
+      </div>
+      <div>
+        <dt>追跡可能性</dt>
+        <dd>安定した識別子、来歴、変更履歴</dd>
+      </div>
+      <div>
+        <dt>接続・表現</dt>
+        <dd>
+          Headless
+          API、Markdownの取り込み・書き出し、問い合わせに応じたグラフビュー
+        </dd>
+      </div>
+    </dl>
+    <p>
+      この構成でプロトタイプを検討しています。競合をどう扱うか、スコープを越えてどこまで影響を辿るかなど、詳細なルールは設計中です。
+    </p>
+    <a class="text-link" href="$repository/blob/main/docs/LATIS_Spec.ja.md"
+      >設計仕様を読む ↗</a
+    >
+  </div>
+</section>
+<section class="section closing" id="open-source" aria-labelledby="open-title">
+  <p class="eyebrow">
+    <span class="status-dot"></span> オープンソース / 設計への参加
+  </p>
+  <h2 id="open-title">設計への意見や反例を募集しています。</h2>
+  <p class="large-copy">設計文書と議論はGitHubで公開しています。</p>
+  <p>
+    実際の開発で使えるモデルにするため、具体的な利用例、このモデルでは扱いにくいケース、アーキテクチャへの指摘を歓迎します。設計はまだ確定していません。
+  </p>
+  <a class="button" href="$repository"
+    >GitHubでLATISを詳しく見る <span aria-hidden="true">↗</span></a
+  >
+  <div class="source-links">
+    <a href="$repository/blob/main/README.ja.md">構想と設計思想</a
+    ><a href="$repository/blob/main/docs/LATIS_API.ja.md">プロトタイプAPI</a
+    ><a href="$repository/blob/main/docs/LATIS_Operation.ja.md">運用モデル</a>
+  </div>
+</section>
