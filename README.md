@@ -14,8 +14,10 @@ Markdown documents remain readable, but they are a poor unit for retrieval, impa
 This project is for people who take AI coding seriously, and for those who still believe specification-driven development has not yet reached its practical limit.
 
 > [!IMPORTANT]
-> This project is still at an early planning and design stage. At this time, there is no application or implementation you can install and run yet.
-> The material in this README is intended primarily to communicate the concept, design direction, data model, and operating model. Please read it as a proposal and discussion baseline rather than as documentation for a finished product.
+> 11/7展示向けのP0参照実装を追加しました。起動・検査方法は [実装ガイド](docs/IMPLEMENTATION.ja.md)、現行仕様は [docs/v0.3.0](docs/v0.3.0/README.md) を参照してください。
+> 以下の本文は初期の構想説明です。実装の規範はv0.3.0のSpec/APIで、独立したLLMセッションによる対話の受け入れは展示前の確認対象です。
+
+実装の進捗と今後の計画は、日付に依存しない [タスク管理票](docs/TASKS.ja.md) で確認できます。
 
 ## Table of contents
 

@@ -1,2 +1,6 @@
 website/dist/
 __pycache__/
+.latis/
+*.egg-info/
+build/
+dist/
