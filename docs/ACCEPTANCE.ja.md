@@ -6,7 +6,7 @@ P0とP1の参照実装に対する、確認した対象・環境・範囲を記�
 
 ## 対象と環境
 
-基準コミット `02a2ff3499d7396704f4511cdb7beb9d637a1448` に、M3とM4の変更を加えた作業ツリーが対象。実装・テスト・仕様・Web・CI構成のファイル別SHA-256と集計は `/tmp/latis-m4-receipt.json` に保存する。実行結果・進捗文書は実装ソースの集計と分ける。
+実装の対象コミットは `fc879d4de15f2a6ee0fe3391576087d6b98626b9`（基準 `02a2ff3` にM3・M4の変更を追加）。`work/m4-validation` へ送信し、同じコミットでホストCIを確認した。実装・テスト・仕様・Web・CI構成のファイル別SHA-256とローカル結果は `/tmp/latis-m4-receipt.json` に保存する。この後のCI結果・進捗文書だけの更新は実装ソースの集計と分ける。
 
 64ファイルのハッシュ対応表を、キー順・空白なしのUTF-8 JSONにした集計SHA-256は `3b1b3f066dfe8ddd2374b52ece755447f2f42376f40c0c120b004e38f98e315b`。対象は `latis/`、`scripts/`、`tests/`、`docs/v0.3.0/`、`website/`、`.github/workflows/` と、`bin/latis`、`pyproject.toml`、`AGENTS.md`、`.gitignore`、両README。`__pycache__`、`dist`、`.DS_Store` は除く。
 
@@ -41,7 +41,7 @@ P0とP1の参照実装に対する、確認した対象・環境・範囲を記�
 | M3のClaude利用 | 16ケース・17呼出し・CLI操作182件。機械検査と意味レビューが合格。隔離導入前の対象版・増分検証の記録である。詳細は [M3検証記録](M3_VERIFICATION.ja.md) |
 | 隔離後のClaude利用 | ダミーファイルによる隔離26項目と、explicit/retryの2ケース・CLI操作27件が合格。対象と例外は [サンドボックス](LLM_SANDBOX.ja.md)。M3全件の再実行ではない |
 | Webのローカル検査 | 構文・ビルド・リンク・メタデータ検査が合格。日英の本文を現行のCLIとP1、既存授権の再利用、未実装機能の表示へ更新。公開先の状態や全画面幅の見た目を再検証した結果ではない |
-| ホストされたCore CI | M2の `f51fcf3` に対する [実行41853767271](https://github.com/ayumuwall/LATIS/actions/runs/41853767271) が成功。今回の作業ツリーに対する実行結果ではない |
+| ホストされたCore CI | `fc879d4` に対する [実行41890221875](https://github.com/ayumuwall/LATIS/actions/runs/41890221875) が成功。Linux／Python 3.12.15／Unicode 15.0.0／SQLite 3.45.1で119テストが31.783秒で合格。配布物の構築・別環境への導入・実CLI24呼出し・素材の実テスト3件も合格。M2の旧版に対する成功とは別の実行である |
 | ホストされたWeb CI | `02a2ff3` に対する [実行41854719004](https://github.com/ayumuwall/LATIS/actions/runs/41854719004) は構文・ビルド・リンク検査に成功し、Configure PagesでNot Found。公開の成功を示さない |
 
 ## 競合と途中障害
@@ -84,12 +84,16 @@ python3 scripts/reset_demo.py --source /tmp/latis-demo-new --destination /tmp/la
 
 SHA-256: `590b4085f5c231b3a710cef1acd4a22bc96fd0558b5d003c952ec6b90d7104af`
 
+ホストCIでは同じソースから別に構築し、wheelのSHA-256は `5eedf8d5a79ea1f2b3f6bc4ecb549ec4aa6cc4582f1f5cac869bf4d3dcfe97d2`。CI上のwheelは配布先へ公開せず、取得可能なActions artifactとしても保存していない。検査対象のソースと導入後23ファイルの一致を確認した結果であり、ローカルwheelとのバイト一致を主張しない。
+
 入力ソースは `build-source.json`、導入環境・同梱ファイル・操作一覧は `check/report.json`、全CLI応答は `check/calls.json` に残す。復元の実演結果は `/tmp/latis-m4-operations/report.json` と配下の4組、Core自動検査は `/tmp/agent-logs/github.com-LATIS/test.log` を参照する。表示用ログは固定名で次回に上書きされ、一時領域の記録も永続保管ではない。
+
+ホストCIの対象・環境・集計は `/tmp/latis-m4-ci.json`、取得した詳細ログは `/tmp/agent-logs/github.com-LATIS/task.log`。リモートに残る実行結果は上記のGitHub Actionsのリンクを参照する。
 
 ## 未確認と残作業
 
-- 今回の変更を含むホストされたCIは未実施。現在の検査構成をコミット・リモートへ送って実行する必要がある。以前のM2の成功を今回の成功へ読み替えない。
-- Web変更はローカルのもの。Pagesの設定変更・デプロイは実施していない。mainへWeb変更をpushすると現行workflowが公開を試みるため、CIだけの確認と公開を区別する。
+- 実装の対象コミット `fc879d4` のホストCIは合格。後続の結果記録だけのコミットは、実装・テスト・配布対象を変更しない。文書だけの変更ではCore CIは再起動しないため、成功した対象コミットを明示して扱う。
+- Web変更はCI専用ブランチに保存したもの。mainの更新・Pagesの設定変更・デプロイは実施していない。mainへWeb変更をpushすると現行workflowが公開を試みるため、CIだけの確認と公開を区別する。
 - M5の同一構成での全LLM回帰、1,000ノード以下の代表データ、全条項の最終照合と完全実装の判定は未完了。
 - LLMへCURSOR_STALEを実際に返す分岐、JSON復元後のLLMによる再利用は、現在のLLM検証には含まない。Coreの該当分岐は自動検査済み。
 - 20万合意、FTS・推論検索、グラフUI、Markdown import、本人性・権限の検証等は現行の実装範囲外。Coreが受け取る判断・主体情報を認証済みの権限へ読み替えない。
