@@ -1,6 +1,7 @@
 """公開契約の型検査、正規化、グラフの不変条件。"""
 
 import hashlib
+import calendar
 import json
 import re
 import uuid
@@ -80,11 +81,13 @@ def strings(value, nonempty=False, choices=None, ordered=False):
 
 def timestamp(value):
     string(value)
-    require(bool(re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|\+00:00)", value)), "UTCのRFC 3339時刻が必要です。")
-    try:
-        datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except ValueError:
-        fail("INVALID_REQUEST", "日時が不正です。")
+    match = re.fullmatch(r"([0-9]{4})-([0-9]{2})-([0-9]{2})[Tt]([0-9]{2}):([0-9]{2}):([0-9]{2})(?:\.[0-9]+)?(?:[Zz]|\+00:00)", value)
+    require(match is not None, "UTCのRFC 3339時刻が必要です。")
+    year, month, day, hour, minute, second = map(int, match.groups())
+    require(1 <= month <= 12 and 1 <= day <= calendar.monthrange(year, month)[1] and
+            0 <= hour <= 23 and 0 <= minute <= 59 and 0 <= second <= 60, "日時が不正です。")
+    if second == 60:
+        require(hour == 23 and minute == 59 and day == calendar.monthrange(year, month)[1], "うるう秒の位置が不正です。")
     return value
 
 
@@ -94,6 +97,25 @@ def now():
 
 def uid():
     return uuid.uuid4().hex
+
+
+def decode_json(raw):
+    """CLIと復元で同じ厳密なJSON読取規則を使用する。"""
+    def pairs(values):
+        result = {}
+        for key, value in values:
+            if key in result:
+                raise ValueError("JSONキーが重複しています。")
+            result[key] = value
+        return result
+
+    def invalid_constant(value):
+        raise ValueError("JSONの数値が不正です。")
+
+    try:
+        return json.loads(raw.decode("utf-8"), object_pairs_hook=pairs, parse_constant=invalid_constant)
+    except RecursionError as exc:
+        raise ValueError("JSONの構造が深すぎます。") from exc
 
 
 def canonical(value):
@@ -109,8 +131,11 @@ def canonical(value):
             string(v, True)
         else:
             require(v is None or type(v) in (bool, int), "JSON数値は整数だけを使用できます。")
-    check(value)
-    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    try:
+        check(value)
+        return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    except (RecursionError, ValueError) as exc:
+        fail("INVALID_REQUEST", "JSONを正規化できません。", cause=str(exc))
 
 
 def digest(value):

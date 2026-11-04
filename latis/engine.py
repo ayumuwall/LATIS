@@ -10,7 +10,7 @@ from pathlib import Path
 
 from . import storage
 from .model import (SPEC, RULES, LIMITS, OPERATIONS, CONTENT, RELATIONS, KINDS, STATES, CONFIRMATIONS,
-                    Error, boolean, canonical, change_set, choice, context, digest, fail, integer,
+                    Error, boolean, canonical, change_set, choice, context, decode_json, digest, fail, integer,
                     memberships, now, obj, proposal, record, reference, refs, require, string,
                     strings, transition, uid, validate_graph)
 
@@ -49,12 +49,12 @@ def diagnostic(code, targets, kind="structural_fact", **details):
     return dict(code=code, evidence_kind=kind, target_refs=targets, message=messages.get(code, code), details=details)
 
 
-def relation_diagnostics(rel, state):
-    if rel["lifecycle"] != "active" or rel["confirmation"] != "confirmed" or basis_status(rel, state) != "changed":
+def relation_diagnostics(rel, state, explicit=False):
+    if (rel["lifecycle"] != "active" and not explicit) or rel["confirmation"] != "confirmed" or basis_status(rel, state) != "changed":
         return []
     changed = [dict(node_id=r["id"], recorded_revision_id=r["revision_id"], current_revision_id=state["nodes"][r["id"]]["revision_id"])
                for r in rel["basis_refs"] if state["nodes"][r["id"]]["revision_id"] != r["revision_id"]]
-    code = "verification_basis_changed" if rel["relation_kind"] in {"implemented_by", "verified_by"} else "basis_changed"
+    code = "verification_basis_changed" if rel["lifecycle"] == "active" and rel["relation_kind"] in {"implemented_by", "verified_by"} else "basis_changed"
     return [diagnostic(code, [reference(rel, "relation")], changed_refs=sorted(changed, key=lambda r: r["node_id"]))]
 
 
@@ -251,7 +251,9 @@ class Engine:
         seeds.update(ctx["anchor_node_ids"])
         for ref in ctx["basis_refs"]:
             value = target(state, ref["type"], ref["id"])
-            require(value["revision_id"] == ref["revision_id"], "指定された根拠版が現在版と異なります。", "BASIS_CHANGED", 409, changed_refs=[reference(value, ref["type"])])
+            existing_revision(state, ref)
+            require(value["revision_id"] == ref["revision_id"], "指定された根拠版が現在版と異なります。", "BASIS_CHANGED", 409,
+                    changed_refs=[reference(value, ref["type"])], current_revision=state["meta"]["graph_revision"], next_action="reconsult")
             references.append(ref)
             if ref["type"] == "node":
                 seeds.add(ref["id"])
@@ -279,16 +281,16 @@ class Engine:
                     confirming = op["reconfirm"] or old["confirmation"] == "candidate" and op["set"].get("confirmation") == "confirmed"
                 seeds.update(id_ for id_ in endpoints if not id_.startswith("$"))
                 for id_ in op.get("basis_targets", []):
+                    extra_evidence.add(id_)
                     if not id_.startswith("$"):
                         seeds.add(id_)
-                        extra_evidence.add(id_)
                 if relation_kind == "verified_by" and confirming:
                     evidence_node = created.get(endpoints[1]) if endpoints[1].startswith("$") else target(state, "node", endpoints[1])
                     if evidence_node and evidence_node.get("evidence"):
                         seeds.update(r["id"] for r in evidence_node["evidence"]["subject_refs"])
         for id_ in extra_evidence:
-            node = target(state, "node", id_)
-            if node["evidence"]:
+            node = created.get(id_) if id_.startswith("$") else target(state, "node", id_)
+            if node and node.get("evidence"):
                 seeds.update(r["id"] for r in node["evidence"]["subject_refs"])
         membership = memberships(state)
         for id_ in seeds:
@@ -304,8 +306,6 @@ class Engine:
         normalized, maximum = self._normalize(request, state)
         self._simulate(normalized["change_set"], state, False)
         basis = self._basis(normalized, state)
-        # spec_versionはenvelope/metaに置き、basisの形には追加しない。
-        basis.pop("spec_version", None)
         seeds, scopes = set(basis["watch"]["node_ids"]), set(basis["watch"]["scope_ids"])
         neighbors, related_relations = set(), []
         for rel in sorted(state["relations"].values(), key=lambda r: r["id"]):
@@ -317,6 +317,11 @@ class Engine:
                 related_relations.append(rel)
         membership = memberships(state)
         same_scope = scopes | {id_ for id_, scope_ids in membership.items() if scopes & set(scope_ids)}
+        # Scopeだけを起点にした照合でも、範囲内に記録された競合を返す。
+        known_relation_ids = {r["id"] for r in related_relations}
+        related_relations.extend(r for r in sorted(state["relations"].values(), key=lambda r: r["id"])
+                                 if r["id"] not in known_relation_ids and r["lifecycle"] == "active" and
+                                 r["relation_kind"] == "conflicts_with" and same_scope & {r["from_node_id"], r["to_node_id"]})
         related = []
         for id_ in seeds | neighbors | same_scope:
             reasons = [reason for reason, subset in (("seed", seeds), ("explicit_relation_neighbor", neighbors), ("same_scope", same_scope)) if id_ in subset]
@@ -325,6 +330,9 @@ class Engine:
             related.append(item)
         related.sort(key=lambda item: ({"seed": 0, "explicit_relation_neighbor": 1, "same_scope": 2}[item["inclusion_reasons"][0]], item["id"]))
         diagnostics = [d for id_ in sorted(seeds) for d in node_diagnostics(state["nodes"][id_], state)]
+        for ref in normalized["context"]["basis_refs"]:
+            if ref["type"] == "relation":
+                diagnostics.extend(relation_diagnostics(state["relations"][ref["id"]], state, explicit=True))
         for rel in related_relations:
             diagnostics.extend(relation_diagnostics(rel, state))
             if rel["relation_kind"] == "conflicts_with":
@@ -345,14 +353,23 @@ class Engine:
         state["meta"].update(graph_revision=commit_revision, snapshot_id=uid() if allocate else "pending")
         local, changed, confirmed = {}, set(), []
         operations = changes["operations"]
+        reserved = set(before["nodes"]) | set(before["relations"]) | set(before["revisions"])
+
+        def fresh(label):
+            candidate = uid() if allocate else "pending:" + label
+            while candidate in reserved:
+                candidate = uid() if allocate else "pending:" + candidate
+            reserved.add(candidate)
+            return candidate
+
         for op in operations:
             if op["op"].startswith("update_"):
                 type_ = op["op"].removeprefix("update_")
                 old = target(before, type_, op["id"])
-                require(old["revision_id"] == op["expected_revision_id"], "更新対象の版が変わりました。", "PRECONDITION_CHANGED", 409, changed_refs=[reference(old, type_)])
+                require(old["revision_id"] == op["expected_revision_id"], "更新対象の版が変わりました。", "PRECONDITION_CHANGED", 409,
+                        changed_refs=[reference(old, type_)], current_revision=before["meta"]["graph_revision"], next_action="reconsult")
             else:
-                local[op["ref"]] = dict(type=op["op"].removeprefix("create_"), id=uid() if allocate else "pending:" + op["ref"],
-                                        revision_id=uid() if allocate else "pending:" + op["ref"])
+                local[op["ref"]] = dict(type=op["op"].removeprefix("create_"), id=fresh(op["ref"]), revision_id=fresh("revision:" + op["ref"]))
 
         def resolve(id_):
             if not id_.startswith("$"):
@@ -366,7 +383,7 @@ class Engine:
             if old is not None and value == old and not reconfirm:
                 return
             if old is not None:
-                value = dict(value, revision_id=uid() if allocate else "pending:" + value["id"], commit_revision=commit_revision, updated_at=stamp)
+                value = dict(value, revision_id=fresh("revision:" + value["id"]), commit_revision=commit_revision, updated_at=stamp)
             state[type_ + "s"][value["id"]] = value
             changed.add((type_, value["id"]))
 
@@ -387,15 +404,15 @@ class Engine:
             elif name == "update_node":
                 old = before["nodes"][op["id"]]
                 patch = op["set"]
-                if draft:
-                    require(old["lifecycle"] in {"draft", "proposed"} and patch.get("lifecycle", old["lifecycle"]) in {"draft", "proposed", "rejected", "retired"},
-                            "採択済み記録の変更にはconsult/applyが必要です。", "CONSULTATION_REQUIRED", 409)
                 if set(patch) & {"locator", "content_hash"}:
                     require(old["kind"] == "artifact" and old["evidence"] is None, "この記録の所在・ハッシュは更新できません。", "INVALID_CHANGE")
                 transition(old["lifecycle"], patch.get("lifecycle", old["lifecycle"]), old["kind"])
                 value = dict(old, **patch)
                 from .model import node_values
                 node_values(value, value["kind"])
+                if draft:
+                    require(old["lifecycle"] in {"draft", "proposed"} and value["lifecycle"] in {"draft", "proposed", "rejected", "retired"},
+                            "採択済み記録の変更にはconsult/applyが必要です。", "CONSULTATION_REQUIRED", 409)
                 changed_value("node", value, old)
 
         for op in operations:
@@ -427,8 +444,8 @@ class Engine:
                 continue
             if draft:
                 source = value["from_node_id"]
-                allowed_scoped = value["relation_kind"] == "scoped_to" and any(
-                    side.get(source, {}).get("lifecycle") in {"draft", "proposed"} for side in (before["nodes"], state["nodes"]))
+                source_state = state["nodes"] if name == "create_relation" else before["nodes"]
+                allowed_scoped = value["relation_kind"] == "scoped_to" and source_state.get(source, {}).get("lifecycle") in {"draft", "proposed"}
                 require(value["confirmation"] == "candidate" or allowed_scoped and not (name == "update_relation" and newly_confirmed),
                         "確定関係の変更にはconsult/applyが必要です。", "CONSULTATION_REQUIRED", 409)
                 if name == "update_relation" and value["confirmation"] == "confirmed":
@@ -479,6 +496,12 @@ class Engine:
         return state, changed, created, updated
 
     def _check_changes(self, data, baseline, current, basis):
+        # 個別版の不一致を、差分履歴・watchの検査より先に返す。
+        for ref in basis["refs"]:
+            value = target(current, ref["type"], ref["id"])
+            require(value["revision_id"] == ref["revision_id"], "照合の根拠版が変わりました。", "BASIS_CHANGED", 409,
+                    changed_refs=[reference(value, ref["type"])], consulted_at_revision=baseline["meta"]["graph_revision"],
+                    current_revision=current["meta"]["graph_revision"], next_action="reconsult")
         expected_numbers = set(range(baseline["meta"]["graph_revision"] + 1, current["meta"]["graph_revision"] + 1))
         commits = [c for c in data["commits"] if c["graph_revision"] in expected_numbers]
         require({c["graph_revision"] for c in commits} == expected_numbers, "照合後の変更履歴が不足しています。", "BASIS_UNAVAILABLE", 409, next_action="reconsult")
@@ -494,10 +517,6 @@ class Engine:
                 covered.add(revision["revision_id"])
         require(covered == {r["revision_id"] for r in data["revisions"] if r["commit_revision"] in expected_numbers},
                 "commitと変更版が対応していません。", "BASIS_UNAVAILABLE", 409, next_action="reconsult")
-        for ref in basis["refs"]:
-            value = target(current, ref["type"], ref["id"])
-            require(value["revision_id"] == ref["revision_id"], "照合の根拠版が変わりました。", "BASIS_CHANGED", 409,
-                    changed_refs=[reference(value, ref["type"])], current_revision=current["meta"]["graph_revision"], next_action="reconsult")
         watch_nodes, watch_scopes = set(basis["watch"]["node_ids"]), set(basis["watch"]["scope_ids"])
         unclassified, changed_refs = {}, []
         before = baseline
@@ -580,7 +599,9 @@ class Engine:
                 if op["op"].startswith("update_"):
                     type_ = op["op"].removeprefix("update_")
                     value = target(state, type_, op["id"])
-                    require(value["revision_id"] == op["expected_revision_id"], "更新対象の版が変わりました。", "PRECONDITION_CHANGED", 409, changed_refs=[reference(value, type_)], next_action="reconsult")
+                    require(value["revision_id"] == op["expected_revision_id"], "更新対象の版が変わりました。", "PRECONDITION_CHANGED", 409,
+                            changed_refs=[reference(value, type_)], consulted_at_revision=basis["graph_revision"],
+                            current_revision=state["meta"]["graph_revision"], next_action="reconsult")
             diagnostics = self._check_changes(data, baseline, state, basis)
             require(normalized["decision"]["semantic_review"] == "ready", "未解決の意味判断があります。", "UNRESOLVED_DECISION", 409)
         final, changed, created, updated = self._simulate(normalized["change_set"], state, True, operation == "save-draft")
@@ -624,7 +645,6 @@ class Engine:
         require(source.is_file(), "復元元が存在しません。", "TARGET_NOT_FOUND", 404)
         if request["format"] == "json":
             try:
-                from .cli import decode_json
                 data = decode_json(source.read_bytes())
             except (UnicodeError, ValueError):
                 fail("INVALID_DATABASE", "復元元のJSONが不正です。")

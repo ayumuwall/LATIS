@@ -1,6 +1,5 @@
 """SQLite正本、履歴の再構成、一貫した退避・復元。"""
 
-import json
 import os
 import re
 import sqlite3
@@ -8,8 +7,8 @@ import tempfile
 from pathlib import Path
 
 from .model import (SPEC, RULES, NODE_KEYS, RELATION_KEYS, KINDS, RELATIONS, STATES, CONTENT,
-                    ORIGINS, CONFIRMATIONS, Error, canonical, choice, fail, integer, memberships,
-                    node_values, now, obj, record, reference, refs, require, string, timestamp,
+                    ORIGINS, CONFIRMATIONS, Error, canonical, change_set, choice, decode_json, fail, integer, memberships,
+                    node_values, now, obj, proposal, record, reference, refs, require, string, strings, timestamp,
                     transition, uid, validate_graph)
 
 APP_ID = 0x4C415449
@@ -22,6 +21,51 @@ def is_busy(exc):
     return isinstance(exc, sqlite3.OperationalError) and (
         (getattr(exc, "sqlite_errorcode", 0) or 0) & 255 in {sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED}
         or "locked" in str(exc).lower() or "busy" in str(exc).lower())
+
+
+def parse_record(raw):
+    require(isinstance(raw, str), "DBのJSON列は文字列である必要があります。", "INVALID_DATABASE")
+    value = decode_json(raw.encode("utf-8"))
+    canonical(value)
+    return value
+
+
+def validate_meta(meta):
+    obj(meta, META_KEYS, META_KEYS)
+    string(meta["database_id"])
+    string(meta["snapshot_id"])
+    integer(meta["graph_revision"], 0, 9007199254740991)
+    require(meta["spec_version"] == SPEC and meta["rules_version"] == RULES, "未対応の仕様版です。", "UNSUPPORTED_FORMAT")
+
+
+def validate_target(value, type_):
+    keys = NODE_KEYS if type_ == "node" else RELATION_KEYS
+    obj(value, keys, keys)
+    for key in ("id", "revision_id"):
+        string(value[key])
+        require(not value[key].startswith("$"), "保存IDにローカル参照は使用できません。")
+    integer(value["commit_revision"], 1, 9007199254740991)
+    timestamp(value["created_at"])
+    timestamp(value["updated_at"])
+    if type_ == "node":
+        choice(value["kind"], KINDS)
+        node_values(dict(value), value["kind"])
+        if value["evidence"] is not None:
+            require(value["evidence"] == node_evidence(value), "証拠の正規化が不正です。")
+    else:
+        choice(value["relation_kind"], RELATIONS)
+        choice(value["lifecycle"], {"active", "retired"})
+        choice(value["confirmation"], CONFIRMATIONS)
+        choice(value["origin"], ORIGINS)
+        for key in ("from_node_id", "to_node_id"):
+            string(value[key])
+            require(not value[key].startswith("$"), "関係の端点は既存IDです。")
+        if value["priority"] is not None:
+            integer(value["priority"])
+        if value["qualifier"] is not None:
+            string(value["qualifier"], True)
+        require(refs(value["basis_refs"], True) == value["basis_refs"], "根拠版の正規化が不正です。")
+        require((value["relation_kind"] in CONTENT and value["confirmation"] == "confirmed") or not value["basis_refs"], "関係の根拠版が不正です。")
 
 
 def initial():
@@ -45,13 +89,16 @@ def connect(path):
         for table in ("metadata", *TABLES):
             require([row[1] for row in conn.execute(f"PRAGMA table_info({table})")] == ["id", "data"], "未対応のDB列を含みます。", "INVALID_DATABASE")
         require(conn.execute("SELECT count(*) FROM metadata").fetchone()[0] == 1, "DBメタデータが重複しています。", "INVALID_DATABASE")
-        meta = json.loads(conn.execute("SELECT data FROM metadata WHERE id=1").fetchone()[0])
+        meta = parse_record(conn.execute("SELECT data FROM metadata WHERE id=1").fetchone()[0])
+        validate_meta(meta)
         require(meta["spec_version"] == SPEC and meta["rules_version"] == RULES, "未対応のDB版です。", "UNSUPPORTED_FORMAT")
         return conn
-    except Error:
+    except Error as exc:
         if "conn" in locals():
             conn.close()
-        raise
+        if exc.code in {"UNSUPPORTED_FORMAT", "INVALID_DATABASE"}:
+            raise
+        fail("INVALID_DATABASE", "DBの記録形式が不正です。", cause=str(exc))
     except (sqlite3.DatabaseError, ValueError, KeyError, TypeError) as exc:
         if "conn" in locals():
             conn.close()
@@ -63,17 +110,16 @@ def connect(path):
 def read(conn):
     try:
         result = {"format": "latis-snapshot", "format_version": 2,
-                  "meta": json.loads(conn.execute("SELECT data FROM metadata WHERE id=1").fetchone()[0])}
-        obj(result["meta"], META_KEYS, META_KEYS)
+                  "meta": parse_record(conn.execute("SELECT data FROM metadata WHERE id=1").fetchone()[0])}
+        validate_meta(result["meta"])
         for table in TABLES:
             key = {"revisions": "revision_id", "commits": "graph_revision", "idempotency_records": "idempotency_key"}.get(table, "id")
             result[table] = []
             for id_, raw in conn.execute(f"SELECT id,data FROM {table}"):
-                item = json.loads(raw)
+                item = parse_record(raw)
                 require(item[key] == id_, "SQLiteの主キーと記録IDが一致しません。", "INVALID_DATABASE")
                 if table in {"nodes", "relations"}:
-                    keys = NODE_KEYS if table == "nodes" else RELATION_KEYS
-                    obj(item, keys, keys)
+                    validate_target(item, "node" if table == "nodes" else "relation")
                 result[table].append(item)
         order_snapshot(result)
         return result
@@ -174,7 +220,7 @@ def validate_snapshot(data):
         if exc.code == "UNSUPPORTED_FORMAT":
             raise
         fail("INVALID_DATABASE", "スナップショットの整合性検査に失敗しました。", cause=str(exc), original_code=exc.code)
-    except (KeyError, TypeError, ValueError, IndexError, AttributeError) as exc:
+    except (KeyError, TypeError, ValueError, IndexError, AttributeError, RecursionError) as exc:
         fail("INVALID_DATABASE", "スナップショットの構造が不正です。", cause=str(exc))
 
 
@@ -183,13 +229,9 @@ def _validate_snapshot(data):
     require(data.get("format") == "latis-snapshot" and type(data.get("format_version")) is int and data["format_version"] == 2,
             "未対応のスナップショット形式です。", "UNSUPPORTED_FORMAT")
     obj(data, {"format", "format_version", "meta", *TABLES}, {"format", "format_version", "meta", *TABLES})
-    require(data["format"] == "latis-snapshot" and type(data["format_version"]) is int and data["format_version"] == 2,
-            "未対応のスナップショット形式です。", "UNSUPPORTED_FORMAT")
-    meta = obj(data["meta"], META_KEYS, META_KEYS)
-    require(meta["spec_version"] == SPEC and meta["rules_version"] == RULES, "未対応の仕様版です。", "UNSUPPORTED_FORMAT")
-    string(meta["database_id"])
-    string(meta["snapshot_id"])
-    integer(meta["graph_revision"], 0, 9007199254740991)
+    canonical(data)
+    meta = data["meta"]
+    validate_meta(meta)
     for table in TABLES:
         require(isinstance(data[table], list), "記録は配列です。")
     collections = {}
@@ -203,42 +245,26 @@ def _validate_snapshot(data):
             {"revision_id", "target_type", "target_id", "commit_revision", "change_type", "snapshot", "provenance_ids"})
         choice(rev["target_type"], {"node", "relation"})
         choice(rev["change_type"], {"create", "update"})
+        string(rev["revision_id"])
+        string(rev["target_id"])
         integer(rev["commit_revision"], 1, meta["graph_revision"])
         target = rev["snapshot"]
-        keys = NODE_KEYS if rev["target_type"] == "node" else RELATION_KEYS
-        obj(target, keys, keys)
-        for key in ("id", "revision_id"):
-            string(target[key])
-            require(not target[key].startswith("$"), "保存IDにローカル参照は使用できません。")
+        validate_target(target, rev["target_type"])
         require(target["id"] == rev["target_id"] and target["revision_id"] == rev["revision_id"] and
                 target["commit_revision"] == rev["commit_revision"], "版の対応が不正です。")
-        timestamp(target["created_at"])
-        timestamp(target["updated_at"])
         if rev["target_type"] == "node":
-            choice(target["kind"], KINDS)
-            node_values(dict(target), target["kind"])
             if target["evidence"]:
-                require(target["evidence"] == node_evidence(target), "証拠の正規化が不正です。")
                 for ref in target["evidence"]["subject_refs"]:
                     subject = versions.get(ref["revision_id"])
                     require(subject is not None and subject["target_type"] == "node" and subject["target_id"] == ref["id"] and
                             subject["commit_revision"] < rev["commit_revision"] and ref["id"] != target["id"], "観測対象の過去版が不正です。")
         else:
-            choice(target["relation_kind"], RELATIONS)
-            choice(target["lifecycle"], {"active", "retired"})
-            choice(target["confirmation"], CONFIRMATIONS)
-            choice(target["origin"], ORIGINS)
-            if target["priority"] is not None:
-                integer(target["priority"])
-            if target["qualifier"] is not None:
-                string(target["qualifier"], True)
-            require(refs(target["basis_refs"], True) == target["basis_refs"], "根拠版の正規化が不正です。")
-            require((target["relation_kind"] in CONTENT and target["confirmation"] == "confirmed") or not target["basis_refs"], "関係の根拠版が不正です。")
             for ref in target["basis_refs"]:
                 subject = versions.get(ref["revision_id"])
                 require(subject is not None and subject["target_type"] == "node" and subject["target_id"] == ref["id"] and
                         subject["commit_revision"] <= rev["commit_revision"], "根拠版が存在しません。")
         require(isinstance(rev["provenance_ids"], list) and len(rev["provenance_ids"]) == 1, "来歴参照が不正です。")
+        string(rev["provenance_ids"][0])
     commits = collections["commits"]
     require(len(commits) == meta["graph_revision"] + 1 and sorted(commits) == list(range(meta["graph_revision"] + 1)), "commit履歴が連続していません。")
     require(len({c["snapshot_id"] for c in commits.values()}) == len(commits), "snapshot_idが重複しています。")
@@ -299,15 +325,26 @@ def _validate_snapshot(data):
             require(not changed and commit["provenance_id"] is None, "初期commitが不正です。")
         else:
             prov = collections["provenance"].get(commit["provenance_id"])
+            require(bool(changed), "変更のないcommitが保存されています。")
             require(prov is not None and prov["commit_revision"] == number and refs(prov["target_refs"]) == refs(changed), "来歴と変更対象が一致しません。")
             allowed = {"id", "commit_revision", "target_refs", "actor", "principal_refs", "source_refs", "reason", "created_at", "execution_context"}
             apply_fields = {"proposal", "change_set", "decision", "consulted_basis", "validated_at_revision"}
             obj(prov, allowed | apply_fields, allowed - {"execution_context"})
+            string(prov["id"])
+            integer(prov["commit_revision"], 1, meta["graph_revision"])
+            require(refs(prov["target_refs"]) == prov["target_refs"], "来歴の対象集合が正規化されていません。")
             timestamp(prov["created_at"])
-            record({k: prov[k] for k in ("actor", "principal_refs", "source_refs", "reason", "execution_context") if k in prov})
+            stored_record = {k: prov[k] for k in ("actor", "principal_refs", "source_refs", "reason", "execution_context") if k in prov}
+            require(record(stored_record) == stored_record, "来歴の実行情報が正規化されていません。")
             if set(prov) & apply_fields:
                 require(apply_fields <= set(prov), "採択の来歴が不足しています。")
-                record(prov["decision"], True)
+                decision = record(prov["decision"], True)
+                require(decision == prov["decision"] and decision["semantic_review"] == "ready", "保存された採択判断が不正です。")
+                require(proposal(prov["proposal"]) == prov["proposal"] and prov["source_refs"] == prov["proposal"]["source_refs"], "提案と来歴の出所が一致しません。")
+                for key in ("actor", "reason", "principal_refs", "execution_context"):
+                    require((key in prov) == (key in decision) and prov.get(key) == decision.get(key), "判断と来歴の実行情報が一致しません。")
+                require(change_set(prov["change_set"], state_at(data, number - 1)) == prov["change_set"], "保存された変更計画が不正です。")
+                integer(prov["validated_at_revision"], 0, number - 1)
                 require(prov["validated_at_revision"] == number - 1, "反映直前の検査版が不正です。")
                 basis = prov["consulted_basis"]
                 obj(basis, {"schema_version", "database_id", "graph_revision", "snapshot_id", "rules_version", "change_digest", "refs", "watch", "exploration_note"},
@@ -317,14 +354,17 @@ def _validate_snapshot(data):
                         basis["snapshot_id"] == commits[basis["graph_revision"]]["snapshot_id"], "照合時の基準履歴が不正です。")
                 require(bool(re.fullmatch(r"sha256:[0-9a-f]{64}", basis["change_digest"])), "照合ダイジェストが不正です。")
                 require(refs(basis["refs"]) == basis["refs"], "照合参照が不正です。")
+                base_state = state_at(data, basis["graph_revision"])
+                string(basis["exploration_note"], True)
                 for ref in basis["refs"]:
                     r = versions.get(ref["revision_id"])
                     require(r is not None and r["target_id"] == ref["id"] and r["target_type"] == ref["type"] and r["commit_revision"] <= basis["graph_revision"], "照合対象の版が不正です。")
+                    require(base_state[ref["type"] + "s"][ref["id"]]["revision_id"] == ref["revision_id"], "照合時点の現在版と一致しません。")
                 obj(basis["watch"], {"node_ids", "scope_ids"}, {"node_ids", "scope_ids"})
                 for watch_key in ("node_ids", "scope_ids"):
-                    require(isinstance(basis["watch"][watch_key], list), "監視範囲が不正です。")
+                    require(strings(basis["watch"][watch_key]) == basis["watch"][watch_key], "監視範囲が正規化されていません。")
                     for id_ in basis["watch"][watch_key]:
-                        require(id_ in old_nodes and (watch_key != "scope_ids" or old_nodes[id_]["kind"] == "scope"), "監視対象が存在しません。")
+                        require(id_ in base_state["nodes"] and (watch_key != "scope_ids" or base_state["nodes"][id_]["kind"] == "scope"), "監視対象が存在しません。")
             used_provenance.add(prov["id"])
         for target in state["relations"].values():
             if target["relation_kind"] in CONTENT and target["confirmation"] == "confirmed":
@@ -340,6 +380,8 @@ def _validate_snapshot(data):
             if number and target["commit_revision"] == number:
                 prov = collections["provenance"][commit["provenance_id"]]
                 rechecked = any(op.get("id") == target["id"] and op.get("reconfirm") is True for op in prov.get("change_set", {}).get("operations", []))
+                if old_relation and old_relation["confirmation"] == "confirmed" and target["relation_kind"] in CONTENT:
+                    require(rechecked or all(old_relation[k] == target[k] for k in ("basis_refs", "qualifier")), "確定判断の変更に再確認の記録がありません。")
             if target["commit_revision"] == number and target["lifecycle"] == "active" and target["confirmation"] == "confirmed" and (newly_confirmed or rechecked):
                 a, b = state["nodes"][target["from_node_id"]], state["nodes"][target["to_node_id"]]
                 if target["relation_kind"] in CONTENT:
@@ -368,16 +410,25 @@ def _validate_snapshot(data):
         require(response["ok"] is True and response["errors"] == [], "成功記録が不正です。")
         response_meta = response["meta"]
         number = response_meta["graph_revision"]
+        integer(number, 1, meta["graph_revision"])
         require(number in commits and response_meta["database_id"] == meta["database_id"] and response_meta["snapshot_id"] == commits[number]["snapshot_id"] and
                 response_meta["spec_version"] == SPEC and response_meta["rules_version"] == RULES and response_meta["api_version"] == "v1", "成功応答と履歴が一致しません。")
         require(number > 0 and number not in success_commits, "成功応答のcommitが重複しています。")
         success_commits.add(number)
         result = response["data"]
         prov = collections["provenance"][commits[number]["provenance_id"]]
+        integer(result["commit_revision"], 1, meta["graph_revision"])
         require(result["commit_revision"] == number and result["provenance_id"] == prov["id"], "成功応答の対象commitが不正です。")
+        require(isinstance(result["created_refs"], dict), "created_refsはオブジェクトです。")
+        for local_ref in result["created_refs"]:
+            require(bool(re.fullmatch(r"[a-z][A-Za-z0-9_]{0,63}", local_ref)), "成功応答のローカルrefが不正です。")
         result_refs = [*result["created_refs"].values(), *result["updated_refs"]]
         require(len(result_refs) == len(prov["target_refs"]) and refs(result_refs) == refs(prov["target_refs"]), "成功応答の変更対象が不正です。")
         require((item["operation"] == "apply") == ("decision" in prov), "成功応答の操作種別が不正です。")
+        created = {(r["type"], r["id"], r["after_revision_id"]) for r in commits[number]["change_refs"] if r["before_revision_id"] is None}
+        updated = {(r["type"], r["id"], r["after_revision_id"]) for r in commits[number]["change_refs"] if r["before_revision_id"] is not None}
+        require({(r["type"], r["id"], r["revision_id"]) for r in result["created_refs"].values()} == created and
+                {(r["type"], r["id"], r["revision_id"]) for r in result["updated_refs"]} == updated, "成功応答の作成・更新の分類が不正です。")
         if item["operation"] == "apply":
             require(result["validated_at_revision"] == prov["validated_at_revision"] and result["consulted_at_revision"] == prov["consulted_basis"]["graph_revision"], "成功応答の照合版が不正です。")
     require(success_commits == set(range(1, meta["graph_revision"] + 1)), "成功済み再試行記録が不足しています。")

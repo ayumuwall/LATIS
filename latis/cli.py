@@ -1,25 +1,11 @@
 """JSON stdin/stdoutのCLI。診断はstderrへ分離する。"""
 
 import argparse
-import json
 import os
 import sys
 
 from .engine import Engine, envelope
-from .model import Error, LIMITS, canonical, fail
-
-
-def decode_json(raw):
-    def pairs(values):
-        result = {}
-        for key, value in values:
-            if key in result:
-                raise ValueError("JSONキーが重複しています。")
-            result[key] = value
-        return result
-    def invalid_constant(value):
-        raise ValueError("JSONの数値が不正です。")
-    return json.loads(raw.decode("utf-8"), object_pairs_hook=pairs, parse_constant=invalid_constant)
+from .model import Error, LIMITS, canonical, decode_json, fail
 
 
 class Parser(argparse.ArgumentParser):
