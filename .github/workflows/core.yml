@@ -2,9 +2,9 @@ name: P0とP1の参照実装の検査
 
 on:
   push:
-    paths: ["latis/**", "bin/**", "scripts/**", "tests/**", "pyproject.toml", ".github/workflows/core.yml", "docs/v0.3.0/examples/**"]
+    paths: ["latis/**", "bin/**", "scripts/**", "tests/**", "pyproject.toml", ".github/workflows/core.yml", "docs/v0.3.0/**"]
   pull_request:
-    paths: ["latis/**", "bin/**", "scripts/**", "tests/**", "pyproject.toml", ".github/workflows/core.yml", "docs/v0.3.0/examples/**"]
+    paths: ["latis/**", "bin/**", "scripts/**", "tests/**", "pyproject.toml", ".github/workflows/core.yml", "docs/v0.3.0/**"]
 
 permissions:
   contents: read
@@ -21,25 +21,11 @@ jobs:
         run: python -m compileall -q latis scripts tests
       - name: API・保存・実CLIの受け入れ検査
         run: python -m unittest discover -v
-      - name: パッケージ構築とインストール
-        run: python -m pip install --no-deps .
-      - name: インストールしたCLIと同梱ガイドの検査
+      - name: 専用コピーから配布物を構築し新しい環境で検査
         run: |
           python - <<'PY'
-          import subprocess
-          import sysconfig
-          import json
-          import tempfile
+          import os
           from pathlib import Path
-          with tempfile.TemporaryDirectory() as directory:
-              def call(operation, request):
-                  result = subprocess.run(["latis", "--db", str(Path(directory) / "ci.sqlite"), operation], input=json.dumps(request).encode(), capture_output=True, cwd=directory, check=True)
-                  response = json.loads(result.stdout)
-                  assert response["ok"], response
-                  return response["data"]
-              assert {"search_descendants", "markdown_export"} <= set(call("init", {})["capabilities"])
-              assert call("search", {"include_descendants": True})["applied_filters"]["expanded_scope_ids"] == []
-              call("export", {"format": "markdown", "destination": str(Path(directory) / "view")})
-              assert (Path(directory) / "view/index.md").is_file()
-          assert (Path(sysconfig.get_path("data")) / "share/latis/docs/v0.3.0/LATIS_LLM_Guide.md").is_file()
+          from scripts.verify_release import run
+          run(Path(os.environ["RUNNER_TEMP"]) / "latis-distribution")
           PY

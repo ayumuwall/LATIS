@@ -4,7 +4,7 @@
 
 日付に依存しない作業順、チェック付きの進捗、現行仕様の完全実装までの計画は [タスク管理票](TASKS.ja.md) で管理する。
 
-条項ごとの確認先は [仕様と実装の対応表](SPEC_COVERAGE.ja.md)、P0の実行結果は [M1検証記録](M1_VERIFICATION.ja.md)、P1の実行結果は [M2検証記録](M2_VERIFICATION.ja.md) を参照する。LLMの行動の確認はM3で行う。
+条項ごとの確認先は [仕様と実装の対応表](SPEC_COVERAGE.ja.md)、P0は [M1検証記録](M1_VERIFICATION.ja.md)、P1は [M2検証記録](M2_VERIFICATION.ja.md)、Claude CLIによる16ケースの利用確認は [M3検証記録](M3_VERIFICATION.ja.md) を参照する。運用・復旧・配布と現在の対象版は [受け入れ記録](ACCEPTANCE.ja.md) にまとめる。
 
 ## 実行環境
 
@@ -24,6 +24,8 @@ JSON
 
 `python3 -m latis` でも同じCLIになる。`bin`をPATHへ加えるか、Python 3.12の仮想環境で `python -m pip install --no-deps .` を実行すれば `latis` を使える。パッケージ構築にはsetuptoolsを使う。
 wheelにもv0.3.0の仕様・LLM Guide・展示素材を同梱する。仮想環境へインストールした場合、ガイドは `<仮想環境>/share/latis/docs/v0.3.0/LATIS_LLM_Guide.md` にある。
+
+配布物の再現検査は `scripts/verify_release.py --output <未存在の一時ディレクトリ>` を使う。必要なソースだけを複写し、ビルド用と実行用の仮想環境を分け、実行用にはローカルwheelだけを導入する。ビルドは `log-window build` のログへ出力する。9操作・P1・両形式の復元・同梱文書と素材の一致まで、ソースツリー外のCLIで検査し、wheelのSHA-256と全応答を残す。CIでも同じスクリプトを使う。
 
 DBの指定は `--db` → `LATIS_DB` → 作業ディレクトリの `.latis/latis.sqlite` の順。親ディレクトリのDBは探索しない。エージェントには絶対パスを渡すと取り違えを減らせる。
 入力はJSONオブジェクト1個、stdoutはJSON envelope1個。診断ログはstderr。終了コードは成功0、契約エラー1、予期しない障害2。
@@ -46,6 +48,8 @@ DBの指定は `--db` → `LATIS_DB` → 作業ディレクトリの `.latis/lat
 ## 子孫Scope検索とMarkdown投影
 
 利用前に `meta` で対応するcapabilityを確認する。以下の `scope_id` は、`search` で `kinds=["scope"]` と必要な `lifecycles` を指定して得た実IDへ置き換える。
+
+`search_descendants` がない接続先では、通常の `relations` でactive/confirmed containsの子孫を辿り、取得したScope IDを明示して検索する。`markdown_export` がなければ完全JSON exportまたは通常の取得操作を使う。未対応のP1要求は `UNSUPPORTED_FEATURE` であり、0件や成功した投影と説明しない。
 
 ```sh
 ./bin/latis --db /tmp/latis-example.sqlite search <<'JSON'
@@ -95,7 +99,28 @@ FORCE_COLOR=1 python3 scripts/rehearse.py --output /tmp/latis-demo-run > /tmp/ag
 出力には `demo.sqlite`、`baseline.sqlite/json`、`final.sqlite/json`、`restored.sqlite`、初期素材、変更後素材、実テストログ、全操作の `responses.json`、`summary.json` が含まれる。`file:` URIはこの作業ディレクトリを基準とする。
 `summary.json` は独立したLLMセッションを検証済みと表示しない。これは既定シナリオの自動再現であり、ライブの対話デモとは区別する。
 
-展示のやり直しには新しい作業ディレクトリへ `baseline-project` の2ファイルをコピーし、`baseline.sqlite` を未存在のDBパスへrestoreする。履歴や証拠を上書きせず、DBとコードを一組で戻す。
+実テストは実行ごとに空のPythonバイトコード参照先へ分離する。同じ秒・同じサイズの更新で古いpycが使われることを防ぎ、観測したソースと実行結果を対応させる。
+
+## 復旧と実演リセット
+
+既定シナリオの出力から、DB・コード・テスト・固定証拠のログを一組で新しい場所へ戻す。
+
+```sh
+python3 scripts/reset_demo.py --source /tmp/latis-demo-run --destination /tmp/latis-demo-next --state baseline --format sqlite
+python3 scripts/reset_demo.py --source /tmp/latis-demo-run --destination /tmp/latis-demo-final --state final --format json
+```
+
+`baseline` は通常ログ24時間、`final` は48時間の組み合わせ。監査ログは両方とも90日。SQLiteとJSONのどちらからも復元でき、選択した状態の完全JSONと全記録が一致すること、コードと固定証拠ログのハッシュがDBの観測版と一致することを公開前に検査する。既存の出力先、復元元の内側、外部へのsymlink、異なる版の組み合わせは拒否する。
+
+復元補助はコードを実行せず、新しい検査証拠も登録しない。`reset.json` は復元元、状態、全ハッシュ、DBの識別情報を記録する。`snapshot.json` は復元した全履歴・来歴・成功済み再試行記録である。新しいDBの `meta` を確認し、LLMへ新しい作業場所・DBを渡す。以前のbasis・cursor・要求JSONを新しい作業へ持ち越さず、必要な探索・照合をやり直す。
+
+手作業で戻す場合も、`baseline-project` の2ファイルと `baseline.sqlite/json`、または変更後の2ファイルと `final.sqlite/json` を同じ組み合わせにする。元のDBや復元元の履歴を上書きしない。証拠の `file:` URIは作業場所を基準に解決し、過去の実行結果を今回実行したものと説明しない。
+
+## 途中障害と出力競合
+
+DBの書き込みは原子的で、commit前にプロセスが停止した場合は部分更新や再試行キーが残らない。ロックで `BUSY` が返った要求も同じキーで再試行できる。結果不明の場合は同じ入力とキーを再送し、勝手に新しいキーを発行しない。
+
+JSON・SQLite・Markdownの出力は完成後に排他的に公開し、既存の出力先を上書きしない。出力の競合では `DESTINATION_EXISTS` を返す。公開前の強制終了では完成先を作らないが、`finally` が動かないため親ディレクトリの `.latis-*` が残ることがある。これは未公開の残片であり復元元や完成品として使わない。書き込みプロセスが終了したことと、その試験専用領域に属することを確認して整理する。動いている別プロセスの一時ファイルをまとめて削除しない。
 
 ## 自動検査
 
@@ -116,14 +141,26 @@ FORCE_COLOR=1 python3 -m unittest discover -v > /tmp/agent-logs/github.com-LATIS
 | E01〜E11 | 実物のハッシュ、実テスト、新旧証拠、失敗結果、固定版の検査、未観測変更の限界 | 実際の作業で観測・検査を適切に選ぶこと |
 | E12 | 新しいプロセスで理由・版・実行情報・証拠を再取得 | 会話を共有しない独立したLLMセッションでの再利用 |
 
-## 展示前に行う対話の受け入れ
+## Claude CLIによる利用検査
 
-LLMを含む利用テストは `claude -p --safe-mode` で実施し、LLMのAPIを直接呼ばない。safe-modeではCLAUDE.mdやカスタム設定からの自動読込を前提にせず、以下のGuide・CLI・DB・作業場所をプロンプトに明示する。コアの契約検証には既存のPython自動テストを使う。具体的な残作業は [タスク管理票のM3](TASKS.ja.md#m3-claude-cliによるllm利用の受け入れ) を参照する。
+現行の試験基盤はmacOSのBashサンドボックスを必須にし、子プロセスにも読み書き・通信の制限を適用する。`--restricted` によるファイル用ツールの制限も併用する。必要な実装だけを同一ハッシュの読み取り専用コピーで実行し、元リポジトリ全体を開放しない。隔離できない場合は停止する。適用範囲・例外・拒否試験の方法は [サンドボックス](LLM_SANDBOX.ja.md) を参照する。以下のM3の16ケースは、隔離導入前の対象版についての結果である。
+
+LLMを含む利用テストはユーザー指定の `claude -p --safe-mode --model claude-opus-5-5 --effort high` で実施し、LLMのAPIを直接呼ばない。safe-modeではCLAUDE.mdやカスタム設定からの自動読込を前提にせず、Guide・API・CLI・DB・作業場所をプロンプトに明示する。コアの契約検証にはPython自動テストを使う。
+
+M3では16ケース・17呼出しを実行し、CLI操作182件、DBの前後、現物、実テストと自然文の意味を確認した。曖昧な対象での待機、同一IDの改訂、既存指示の再利用、前提変更と結果不明からの回復、失敗結果と未観測変更、P1利用、独立セッションを含む。試験基盤の単体検査を含む全104件のPythonテストも合格した。
+
+```sh
+~/.local/bin/log-window e2e --keep
+FORCE_COLOR=1 python3 -u scripts/llm_acceptance.py --output /tmp/latis-llm-run > /tmp/agent-logs/github.com-LATIS/e2e.log 2>&1
+```
+
+出力先は未存在の専用ディレクトリを使う。`log-window` はmacOSのアプリ操作ができる権限で開き、Claudeも既存のログインを利用できる環境から実行する。必要なツールを文書と専用作業コピー・固定コマンドへ限定し、操作・応答・終了結果を同じiTerm2ウインドウへ逐次表示する。ケースの定義・許可範囲・判定方法は [M3利用検査](M3_CASES.ja.md)、実際の結果はM3検証記録を参照する。対象版を固定した最終受け入れと実展示環境の確認はM4〜M5で行う。
 
 `AGENTS.md` と [LLM Guide](v0.3.0/LATIS_LLM_Guide.md) から利用方法を辿れる。展示用セッションの開始指示には、実際の絶対パスで次を渡す。
 
 > Guideは `<リポジトリ>/docs/v0.3.0/LATIS_LLM_Guide.md`、CLIは `<リポジトリ>/bin/latis`、DBは `<展示作業場所>/demo.sqlite` です。
 > 作業場所は `<展示作業場所>` です。開始時にGuideとmetaを確認してください。過去の判断が関係するときに検索し、合意変更前は照合してください。全編集の事前照会は不要です。
+> 複数種類の合意があり対象の種類が未指定なら、現状の値や理由だけから対象を決めず、回答まで合意・コード・テストは変更しないでください。同じ既存合意の条件値変更は、同じIDの改訂を既定にしてください。既存の指示・授権で対象と扱いが明確なら、同じ許可を取り直さないでください。
 > 現在の実装を説明するときは現物と記録された証拠の対応を確認してください。
 
 初期状態で「ログを48時間に」と依頼し、必要な対象の打診だけが行われるかを確認する。次に、最初から「通常ログだけ48時間、監査ログは変更しない」と指示し、同じ許可を取り直さないことを確認する。

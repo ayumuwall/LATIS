@@ -4,7 +4,6 @@
 import argparse
 import hashlib
 import json
-import os
 import shutil
 import subprocess
 import sys
@@ -12,6 +11,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+from scripts.test_support import run_unittest
 
 
 def sha(path):
@@ -69,12 +70,12 @@ def run(output):
     def verify(label):
         log = output / f"check-{label}.log"
         before = {name: sha(output / name) for name in ("retention.py", "test_retention.py")}
-        result = subprocess.run([sys.executable, "-m", "unittest", "-v"], cwd=output, capture_output=True, env=dict(os.environ, FORCE_COLOR="1"))
+        result = run_unittest(output)
         log.write_bytes(result.stdout + result.stderr)
         assert before == {name: sha(output / name) for name in before}, "検査中に対象ファイルが変更されました。"
         subject_nodes = [current(ids[name]) for name in ("app_artifact", "test_artifact", "normal_retention", "audit_retention")]
         evidence = dict(subject_refs=[dict(type="node", id=n["id"], revision_id=n["revision_id"]) for n in subject_nodes],
-                        method=f"作業場所 {output} で {sys.executable} -m unittest -v を実行。終了コード={result.returncode}",
+                        method=f"作業場所 {output} でバイトコードキャッシュを分離し、{sys.executable} -m unittest -v を実行。終了コード={result.returncode}",
                         outcome="passed" if result.returncode == 0 else "failed", observed_at=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
                         actor="agent:rehearsal", source_refs=[str(log)])
         response = save([dict(op="create_node", ref="result", kind="artifact", title=f"実検査結果 {label}", body="実際のアプリ・テストの版に対する結果。",

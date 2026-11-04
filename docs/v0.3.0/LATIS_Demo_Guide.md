@@ -208,6 +208,14 @@ JSON
 前回の `basis`・cursor・変更リクエストを、復元後の新しい作業に持ち越さない。必要な問い合わせをやり直す。
 題材コードだけ、または DB だけを初期化して整合した初期状態だと説明しない。
 
+参照実装の `scripts/rehearse.py` で作った出力には、一組で戻す補助も使える。
+
+```sh
+python3 scripts/reset_demo.py --source /tmp/latis-demo-run --destination /tmp/latis-demo-next --state baseline --format sqlite
+```
+
+JSONから戻す場合は `--format json`、変更後の状態を再現する場合は `--state final` を使う。補助はソースリポジトリで実行する。コードと証拠ログのハッシュをDBの版と照合し、必要なファイルだけを未存在の出力先へ公開する。コードは実行せず、過去の証拠を新しい実行結果にしない。詳細はソースリポジトリの [実装ガイド](https://github.com/ayumuwall/LATIS/blob/main/docs/IMPLEMENTATION.ja.md#復旧と実演リセット) を参照する。
+
 ## 8. ライブと録画の切り替え
 
 | 表示 | 条件 |

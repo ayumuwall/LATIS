@@ -8,7 +8,7 @@
 - Version: v0.3-demo-draft
 - Updated: 2026-11-04, Japan Standard Time
 - Target: implementation specification for the exhibition on 2026-11-07 JST.
-- Status: revised specification; this package does not claim that the engine is implemented, acceptance tests have passed, or performance targets have been met.
+- 状況：P0とP1の参照実装とClaude CLIでの利用確認が進んでいます。完全実装・性能達成の最終判定は未完了です。導入・結果・残作業はソースリポジトリの [実装ガイド](https://github.com/ayumuwall/LATIS/blob/main/docs/IMPLEMENTATION.ja.md)、[受け入れ記録](https://github.com/ayumuwall/LATIS/blob/main/docs/ACCEPTANCE.ja.md)、[タスク管理票](https://github.com/ayumuwall/LATIS/blob/main/docs/TASKS.ja.md) を参照してください。
 - [日本語](README.ja.md)
 
 ## What we are building

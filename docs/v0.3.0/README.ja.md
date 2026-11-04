@@ -6,7 +6,7 @@
 - 版：v0.3-demo-draft
 - 更新日：2026-11-04（日本時間）
 - 対象：2026-11-07の展示に向けた実装仕様。
-- 状況：仕様を改訂した段階。本体の実装完了、受け入れ試験の合格、性能達成を示すものではありません。
+- 状況：P0とP1の参照実装、Claude CLIでの利用確認が進んでいます。現行仕様の完全実装・性能達成の最終判定は未完了です。現在の導入手順はソースリポジトリの [実装ガイド](https://github.com/ayumuwall/LATIS/blob/main/docs/IMPLEMENTATION.ja.md)、確認結果は [受け入れ記録](https://github.com/ayumuwall/LATIS/blob/main/docs/ACCEPTANCE.ja.md)、残作業は [タスク管理票](https://github.com/ayumuwall/LATIS/blob/main/docs/TASKS.ja.md) を参照してください。
 - [English](README.md)
 
 ## 何をつくるか

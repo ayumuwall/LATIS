@@ -17,7 +17,7 @@ Python 3.11+ and its standard library generate plain HTML and CSS. There are no 
 - `serve.py`: local preview with the actual deployment base path
 - `../.github/workflows/pages.yml`: build/check on pull requests; build/check/deploy on main
 
-Content is based on `README.md`, `README.ja.md`, `docs/v0.1.0/LATIS_Spec.ja.md`, `docs/v0.1.0/LATIS_API.ja.md`, and `docs/v0.1.0/LATIS_Operation.ja.md`. Current unresolved design boundaries are also described in `docs/v0.1.0/LATIS_Concerns.ja.md`. These documents remain the authority; update both translations when the design or release status changes.
+現在の機能と保証は `docs/v0.3.0/LATIS_Spec.md`、`LATIS_API.md`、`LATIS_Operation.md` を基準にする。導入と検査は `docs/IMPLEMENTATION.ja.md`、検証範囲は `docs/ACCEPTANCE.ja.md`、残作業は `docs/TASKS.ja.md` を参照する。README本文とv0.1.0は構想の履歴であり、現行APIの根拠にしない。日英の本文を同じ実装範囲へ更新し、構想と確認済み機能を区別する。
 
 ## Local development
 
@@ -68,6 +68,6 @@ A project Pages URL serves `robots.txt` under `/LATIS/`; crawlers consult robots
 
 Initial implementation was checked in Chrome at 320, 390, 768, and 1440px in both languages, with JavaScript disabled and reduced motion enabled. Checks covered overflow, asset responses, keyboard skip navigation, and the native example disclosure; desktop and mobile screenshots were visually reviewed. Both project-path and custom-domain-root builds passed the link and metadata checker.
 
-Before publishing, recheck the current copy against the source documents and inspect both languages. After publishing, verify the actual HTTPS URLs, redirects and social-card fetch, run Lighthouse against the hosted site, and submit the sitemap in Search Console if desired. No Lighthouse score or live deployment is claimed by the local checks. Keep installation instructions off the site until an installable implementation exists.
+Before publishing, recheck the current copy against the source documents and inspect both languages. After publishing, verify the actual HTTPS URLs, redirects and social-card fetch, run Lighthouse against the hosted site, and submit the sitemap in Search Console if desired. No Lighthouse score or live deployment is claimed by the local checks. CLIの導入手順は実装ガイドへ案内する。ローカルの変更を公開済みの説明にしない。直近のホスト実行はbuild・リンク検査に成功し、Configure PagesでNot Foundとなった。Pagesを有効化する設定変更・デプロイは、コードのローカル検証と別の操作である。
 
 The social PNG is committed so normal builds need no image tooling. If the social artwork changes, export `static/social.svg` to `static/social.png` at 1200 × 630 with an SVG renderer, then rebuild.
