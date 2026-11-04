@@ -286,10 +286,10 @@ LATISは、以下の目的で使用することを想定していません：
 
 ## 関連ドキュメント
 
-- [`docs/LATIS_Spec.ja.md`](docs/LATIS_Spec.ja.md) — LATIS の定義、境界、中核機能
-- [`docs/LATIS_API.ja.md`](docs/LATIS_API.ja.md) — プロトタイプ API 仕様
-- [`docs/LATIS_Operation.ja.md`](docs/LATIS_Operation.ja.md) — 日常運用フローと役割分担
-- [`docs/LATIS_Concerns.ja.md`](docs/LATIS_Concerns.ja.md) — 現時点の懸念事項と解決案
+- [`docs/v0.1.0/LATIS_Spec.ja.md`](docs/v0.1.0/LATIS_Spec.ja.md) — LATIS の定義、境界、中核機能
+- [`docs/v0.1.0/LATIS_API.ja.md`](docs/v0.1.0/LATIS_API.ja.md) — プロトタイプ API 仕様
+- [`docs/v0.1.0/LATIS_Operation.ja.md`](docs/v0.1.0/LATIS_Operation.ja.md) — 日常運用フローと役割分担
+- [`docs/v0.1.0/LATIS_Concerns.ja.md`](docs/v0.1.0/LATIS_Concerns.ja.md) — 現時点の懸念事項と解決案
 
 ## 初期の方向性
 

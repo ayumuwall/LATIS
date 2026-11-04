@@ -17,7 +17,7 @@ Python 3.11+ and its standard library generate plain HTML and CSS. There are no 
 - `serve.py`: local preview with the actual deployment base path
 - `../.github/workflows/pages.yml`: build/check on pull requests; build/check/deploy on main
 
-Content is based on `README.md`, `README.ja.md`, `docs/LATIS_Spec.ja.md`, `docs/LATIS_API.ja.md`, and `docs/LATIS_Operation.ja.md`. Current unresolved design boundaries are also described in `docs/LATIS_Concerns.ja.md`. These documents remain the authority; update both translations when the design or release status changes.
+Content is based on `README.md`, `README.ja.md`, `docs/v0.1.0/LATIS_Spec.ja.md`, `docs/v0.1.0/LATIS_API.ja.md`, and `docs/v0.1.0/LATIS_Operation.ja.md`. Current unresolved design boundaries are also described in `docs/v0.1.0/LATIS_Concerns.ja.md`. These documents remain the authority; update both translations when the design or release status changes.
 
 ## Local development
 

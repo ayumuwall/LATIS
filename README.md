@@ -284,10 +284,10 @@ LATIS is not intended to be:
 
 ## Related documents
 
-- [`docs/LATIS_Spec.ja.md`](docs/LATIS_Spec.ja.md) — LATIS definition, boundaries, and core functions (Japanese)
-- [`docs/LATIS_API.ja.md`](docs/LATIS_API.ja.md) — prototype API spec (Japanese)
-- [`docs/LATIS_Operation.ja.md`](docs/LATIS_Operation.ja.md) — daily operations flow and roles (Japanese)
-- [`docs/LATIS_Concerns.ja.md`](docs/LATIS_Concerns.ja.md) — current concerns and proposals (Japanese)
+- [`docs/v0.1.0/LATIS_Spec.ja.md`](docs/v0.1.0/LATIS_Spec.ja.md) — LATIS definition, boundaries, and core functions (Japanese)
+- [`docs/v0.1.0/LATIS_API.ja.md`](docs/v0.1.0/LATIS_API.ja.md) — prototype API spec (Japanese)
+- [`docs/v0.1.0/LATIS_Operation.ja.md`](docs/v0.1.0/LATIS_Operation.ja.md) — daily operations flow and roles (Japanese)
+- [`docs/v0.1.0/LATIS_Concerns.ja.md`](docs/v0.1.0/LATIS_Concerns.ja.md) — current concerns and proposals (Japanese)
 
 ## Early direction
 
