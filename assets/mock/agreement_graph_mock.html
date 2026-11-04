@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agreement Graph Mock</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #131a2e;
+      --panel-2: #18213a;
+      --border: rgba(255,255,255,0.08);
+      --text: #e7ecff;
+      --muted: #9aa7d1;
+      --accent: #7aa2ff;
+      --accent-2: #7be0c4;
+      --warn: #ffb86b;
+      --danger: #ff7b93;
+      --ok: #73e39c;
+      --shadow: 0 10px 30px rgba(0,0,0,0.28);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(122,162,255,0.12), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(123,224,196,0.10), transparent 22%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 300px 1fr 360px;
+      gap: 18px;
+      padding: 18px;
+      min-height: 100vh;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(8px);
+    }
+
+    .panel-header {
+      padding: 16px 18px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .panel-title {
+      font-size: 14px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .panel-body {
+      padding: 16px;
+    }
+
+    .left-panel {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .brand-badge {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #08111f;
+      font-weight: 800;
+    }
+
+    .search {
+      padding: 12px 14px;
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      outline: none;
+    }
+
+    .scope-section + .scope-section {
+      margin-top: 18px;
+    }
+
+    .scope-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .tree {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .tree-item {
+      border: 1px solid transparent;
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.02);
+      cursor: default;
+    }
+
+    .tree-item.active {
+      background: rgba(122,162,255,0.14);
+      border-color: rgba(122,162,255,0.42);
+    }
+
+    .tree-item.sub {
+      margin-left: 18px;
+      background: rgba(255,255,255,0.018);
+    }
+
+    .tree-item.sub2 {
+      margin-left: 36px;
+      background: rgba(255,255,255,0.012);
+    }
+
+    .tree-name {
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .tree-meta {
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .count {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      color: var(--text);
+      background: rgba(255,255,255,0.08);
+      white-space: nowrap;
+    }
+
+    .main-panel {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 20px 22px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .headline {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.1;
+    }
+
+    .subline {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 14px;
+      max-width: 760px;
+      line-height: 1.6;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .chip {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+    }
+
+    .canvas-wrap {
+      padding: 18px;
+    }
+
+    .canvas {
+      position: relative;
+      min-height: 520px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015));
+      background-size: 28px 28px, 28px 28px, auto;
+      overflow: hidden;
+    }
+
+    svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .node {
+      position: absolute;
+      width: 188px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      padding: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .node.decision { border-color: rgba(122,162,255,0.45); }
+    .node.constraint { border-color: rgba(123,224,196,0.45); }
+    .node.question { border-color: rgba(255,184,107,0.45); }
+    .node.impact { border-color: rgba(255,123,147,0.45); }
+
+    .node-kicker {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .node-title {
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.35;
+      margin-bottom: 8px;
+    }
+
+    .node-text {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .legend {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+      padding: 0 22px 20px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+    }
+
+    .side-stack {
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 18px;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .metric {
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.025);
+    }
+
+    .metric-value {
+      font-size: 22px;
+      font-weight: 800;
+      margin-top: 4px;
+    }
+
+    .metric-label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .impact-list, .history-list, .context-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .row {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.025);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .row-title {
+      font-size: 14px;
+      font-weight: 650;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .row-meta, .row-text {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .status {
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .status.high { background: rgba(255,123,147,0.16); color: #ffd5dd; }
+    .status.med { background: rgba(255,184,107,0.16); color: #ffe0b8; }
+    .status.low { background: rgba(115,227,156,0.16); color: #d8ffe6; }
+
+    .footer-note {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    @media (max-width: 1200px) {
+      .app {
+        grid-template-columns: 280px 1fr;
+      }
+      .right-panel {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+      .main-panel { order: 1; }
+      .left-panel { order: 2; }
+      .right-panel { order: 3; }
+      .canvas { min-height: 620px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="panel left-panel">
+      <div class="panel-header" style="display:block;">
+        <div class="brand">
+          <div class="brand-badge">AG</div>
+          <div>
+            <div>Agreement Graph</div>
+            <div style="font-size:12px;color:var(--muted);font-weight:500;margin-top:4px;">semantic scope mock</div>
+          </div>
+        </div>
+        <div style="margin-top:14px;">
+          <input class="search" value="Mail list / inbox" />
+        </div>
+      </div>
+      <div class="panel-body">
+        <section class="scope-section">
+          <div class="scope-label">System scopes</div>
+          <div class="tree">
+            <div class="tree-item">
+              <div class="tree-name">Messaging<span class="count">84 nodes</span></div>
+              <div class="tree-meta"><span>feature scope</span><span>11 subscopes</span></div>
+            </div>
+            <div class="tree-item active sub">
+              <div class="tree-name">Inbox Experience<span class="count">26 nodes</span></div>
+              <div class="tree-meta"><span>auto-named</span><span>confidence 0.91</span></div>
+            </div>
+            <div class="tree-item sub2 active">
+              <div class="tree-name">Message List<span class="count">12 nodes</span></div>
+              <div class="tree-meta"><span>UI + domain</span><span>selected</span></div>
+            </div>
+            <div class="tree-item sub2">
+              <div class="tree-name">Selection / Bulk Actions<span class="count">7 nodes</span></div>
+              <div class="tree-meta"><span>action cluster</span></div>
+            </div>
+            <div class="tree-item sub2">
+              <div class="tree-name">Filter / Sort<span class="count">5 nodes</span></div>
+              <div class="tree-meta"><span>query cluster</span></div>
+            </div>
+            <div class="tree-item sub">
+              <div class="tree-name">Message Reading<span class="count">19 nodes</span></div>
+              <div class="tree-meta"><span>detail scope</span></div>
+            </div>
+            <div class="tree-item">
+              <div class="tree-name">Search<span class="count">33 nodes</span></div>
+              <div class="tree-meta"><span>cross-feature</span></div>
+            </div>
+            <div class="tree-item">
+              <div class="tree-name">Sync & Offline<span class="count">21 nodes</span></div>
+              <div class="tree-meta"><span>infra concern</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="scope-section">
+          <div class="scope-label">Scope facets</div>
+          <div class="chips">
+            <span class="chip">Feature: Inbox</span>
+            <span class="chip">Layer: UI</span>
+            <span class="chip">Layer: Domain</span>
+            <span class="chip">Concern: Accessibility</span>
+            <span class="chip">Concern: Performance</span>
+          </div>
+        </section>
+      </div>
+    </aside>
+
+    <main class="panel main-panel">
+      <div class="topbar">
+        <div>
+          <h1 class="headline">Message List</h1>
+          <div class="subline">
+            自動スコーピングにより抽出された局所スコープ。メール一覧の表示密度、行高、選択状態、未読バッジ、仮想スクロール閾値にまたがる合意が束ねられています。
+          </div>
+          <div class="chips">
+            <span class="chip">12 nodes</span>
+            <span class="chip">18 edges</span>
+            <span class="chip">2 unresolved questions</span>
+            <span class="chip">last changed 2h ago</span>
+          </div>
+        </div>
+        <div class="chips" style="justify-content:flex-end;max-width:220px;">
+          <span class="chip">Structure View</span>
+          <span class="chip">Impact Lens</span>
+          <span class="chip">History</span>
+        </div>
+      </div>
+
+      <div class="canvas-wrap">
+        <div class="canvas">
+          <svg viewBox="0 0 1000 560" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L0,6 L9,3 z" fill="rgba(122,162,255,0.7)" />
+              </marker>
+              <marker id="warnArrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L0,6 L9,3 z" fill="rgba(255,184,107,0.8)" />
+              </marker>
+            </defs>
+            <path d="M210 110 C 290 110, 300 110, 375 110" stroke="rgba(122,162,255,0.55)" stroke-width="3" fill="none" marker-end="url(#arrow)" />
+            <path d="M565 110 C 650 110, 660 110, 740 110" stroke="rgba(122,162,255,0.55)" stroke-width="3" fill="none" marker-end="url(#arrow)" />
+            <path d="M210 110 C 300 190, 300 250, 375 315" stroke="rgba(123,224,196,0.45)" stroke-width="3" fill="none" />
+            <path d="M565 110 C 640 190, 660 230, 742 286" stroke="rgba(255,184,107,0.7)" stroke-width="3" fill="none" stroke-dasharray="8 8" marker-end="url(#warnArrow)" />
+            <path d="M740 110 C 850 160, 850 250, 785 315" stroke="rgba(255,123,147,0.7)" stroke-width="3" fill="none" stroke-dasharray="10 8" />
+            <path d="M470 350 C 560 360, 620 350, 740 350" stroke="rgba(122,162,255,0.38)" stroke-width="3" fill="none" />
+            <path d="M470 350 C 420 260, 430 180, 470 145" stroke="rgba(255,255,255,0.20)" stroke-width="2" fill="none" stroke-dasharray="6 7" />
+          </svg>
+
+          <div class="node decision" style="left: 24px; top: 72px;">
+            <div class="node-kicker">Decision</div>
+            <div class="node-title">List row height is 48px</div>
+            <div class="node-text">情報密度とタップ可能性の均衡点として確定。</div>
+          </div>
+
+          <div class="node constraint" style="left: 390px; top: 72px;">
+            <div class="node-kicker">Constraint</div>
+            <div class="node-title">Minimum touch target ≥ 44dp</div>
+            <div class="node-text">モバイルUI制約。行高決定の根拠。</div>
+          </div>
+
+          <div class="node decision" style="left: 756px; top: 72px;">
+            <div class="node-kicker">Decision</div>
+            <div class="node-title">Unread badge stays visible in compact mode</div>
+            <div class="node-text">一覧性優先。視認性維持のため保持。</div>
+          </div>
+
+          <div class="node question" style="left: 390px; top: 278px;">
+            <div class="node-kicker">Question</div>
+            <div class="node-title">Should swipe action archive or delete?</div>
+            <div class="node-text">一覧密度と誤操作リスクに影響。未解決。</div>
+          </div>
+
+          <div class="node impact" style="left: 756px; top: 278px;">
+            <div class="node-kicker">Impact</div>
+            <div class="node-title">Virtual scroll threshold must be recalibrated</div>
+            <div class="node-text">行高変更の影響はこの局所範囲に限定。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item"><span class="dot" style="background:var(--accent);"></span> confirmed relation</div>
+        <div class="legend-item"><span class="dot" style="background:var(--accent-2);"></span> support / dependency</div>
+        <div class="legend-item"><span class="dot" style="background:var(--warn);"></span> unresolved / inferred</div>
+        <div class="legend-item"><span class="dot" style="background:var(--danger);"></span> impact / risk</div>
+        <div class="legend-item"><span class="dot" style="background:#d0d8ff;"></span> history link</div>
+      </div>
+    </main>
+
+    <aside class="side-stack right-panel">
+      <section class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">Scope summary</h2>
+        </div>
+        <div class="panel-body">
+          <div class="metric-grid">
+            <div class="metric">
+              <div class="metric-label">Impact radius</div>
+              <div class="metric-value">Local</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Name source</div>
+              <div class="metric-value">Auto + Edited</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Confidence</div>
+              <div class="metric-value">0.91</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Open questions</div>
+              <div class="metric-value">2</div>
+            </div>
+          </div>
+          <div class="footer-note">
+            このスコープは「Inbox Experience」配下の局所クラスター。UI と Domain の両方に跨るが、影響は主に list rendering と interaction rules に限定されます。
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">Impact lens</h2>
+        </div>
+        <div class="panel-body impact-list">
+          <div class="row">
+            <div class="row-title">Virtual scroll threshold <span class="status high">direct</span></div>
+            <div class="row-text">48px 行高の変更で再調整が必要。レンダリング範囲の再計算に直結。</div>
+          </div>
+          <div class="row">
+            <div class="row-title">Unread badge truncation rule <span class="status med">review</span></div>
+            <div class="row-text">compact mode を維持する場合、表示優先順位の再検討が必要。</div>
+          </div>
+          <div class="row">
+            <div class="row-title">Swipe action policy <span class="status med">blocked</span></div>
+            <div class="row-text">未決事項のため、一覧密度最適化の一部は保留。</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">History & AI context</h2>
+        </div>
+        <div class="panel-body">
+          <div class="history-list">
+            <div class="row">
+              <div class="row-title">2h ago <span class="status low">decision</span></div>
+              <div class="row-meta">“List row height is 48px” added by Ayumu</div>
+            </div>
+            <div class="row">
+              <div class="row-title">5h ago <span class="status med">question</span></div>
+              <div class="row-meta">Swipe action policy reopened after mobile review</div>
+            </div>
+            <div class="row">
+              <div class="row-title">Yesterday <span class="status low">scope</span></div>
+              <div class="row-meta">Auto scope renamed from “List Interaction Cluster” to “Message List”</div>
+            </div>
+          </div>
+
+          <div style="height:14px"></div>
+
+          <div class="context-list">
+            <div class="row">
+              <div class="row-title">AI context pack preview <span class="status low">7 nodes</span></div>
+              <div class="row-text">List row height / touch target / unread badge / virtual scroll threshold / swipe action question / compact mode rationale / inbox list owner</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </div>
+</body>
+</html>

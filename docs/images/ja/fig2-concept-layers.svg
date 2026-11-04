@@ -1,0 +1,31 @@
+<svg viewBox="0 0 880 440" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <rect width="880" height="440" fill="#ffffff"/>
+  <text x="440" y="28" text-anchor="middle" fill="#1f2328" font-size="14" font-weight="600">6つの概念レイヤー</text>
+  <!-- Layer 6: Scope -->
+  <rect x="60" y="48" width="760" height="50" rx="8" fill="#fff8c5" stroke="#9a6700" stroke-opacity="0.4"/>
+  <text x="96" y="78" fill="#9a6700" font-size="14" font-weight="600">Scope（スコープ）</text>
+  <text x="460" y="78" fill="#656d76" font-size="12">ローカル構造がより大きな概念層にロールアップする方法</text>
+  <!-- Layer 5: Impact -->
+  <rect x="60" y="108" width="760" height="50" rx="8" fill="#fff1e5" stroke="#bc4c00" stroke-opacity="0.4"/>
+  <text x="96" y="138" fill="#bc4c00" font-size="14" font-weight="600">Impact（影響）</text>
+  <text x="460" y="138" fill="#656d76" font-size="12">何かが変わったとき、何が影響を受けるか</text>
+  <!-- Layer 4: Open Questions -->
+  <rect x="60" y="168" width="760" height="50" rx="8" fill="#ffebe9" stroke="#cf222e" stroke-opacity="0.3"/>
+  <text x="96" y="198" fill="#cf222e" font-size="14" font-weight="600">Open Questions（未解決事項）</text>
+  <text x="460" y="198" fill="#656d76" font-size="12">まだ解決されていない事項</text>
+  <!-- Layer 3: Rationale -->
+  <rect x="60" y="228" width="760" height="50" rx="8" fill="#dafbe1" stroke="#1a7f37" stroke-opacity="0.4"/>
+  <text x="96" y="258" fill="#1a7f37" font-size="14" font-weight="600">Rationale（根拠）</text>
+  <text x="460" y="258" fill="#656d76" font-size="12">なぜその決定が現在の形で存在するのか</text>
+  <!-- Layer 2: Traceability -->
+  <rect x="60" y="288" width="760" height="50" rx="8" fill="#fbefff" stroke="#8250df" stroke-opacity="0.4"/>
+  <text x="96" y="318" fill="#8250df" font-size="14" font-weight="600">Traceability（追跡可能性）</text>
+  <text x="460" y="318" fill="#656d76" font-size="12">何が何に接続し、なぜ接続しているか</text>
+  <!-- Layer 1: Intent -->
+  <rect x="60" y="348" width="760" height="50" rx="8" fill="#ddf4ff" stroke="#0969da" stroke-opacity="0.4"/>
+  <text x="96" y="378" fill="#0969da" font-size="14" font-weight="600">Intent（意図）</text>
+  <text x="460" y="378" fill="#656d76" font-size="12">システムまたは変更が達成しようとしていること</text>
+  <!-- Foundation -->
+  <rect x="60" y="410" width="760" height="4" rx="2" fill="#0969da"/>
+  <text x="440" y="432" text-anchor="middle" fill="#0969da" font-size="12" font-weight="600" letter-spacing="0.5">AGREEMENT（合意）— 何が決定されたか — 基盤レイヤー</text>
+</svg>

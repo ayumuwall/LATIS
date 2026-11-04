@@ -1,0 +1,155 @@
+{
+  "proposal": {
+    "title": "11月7日展示の架空の初期設定",
+    "body": "通常ログ24時間、監査ログ90日の別々の合意と、初期アプリ・テストの参照を登録する。検証済みとはまだ主張しない。",
+    "source_refs": [
+      "examples/README.md",
+      "LATIS_Demo_Guide.md"
+    ]
+  },
+  "change_set": {
+    "operations": [
+      {
+        "op": "create_node",
+        "ref": "logs_scope",
+        "kind": "scope",
+        "title": "ログ関連（展示用）",
+        "body": "架空の展示設定。探索用の分類であり、優先順位や権限階層を意味しない。",
+        "lifecycle": "accepted"
+      },
+      {
+        "op": "create_node",
+        "ref": "normal_retention",
+        "kind": "agreement",
+        "title": "通常ログの保持期間",
+        "body": "通常ログは24時間保持する。監査ログはこの合意の対象に含めない。これは展示用の架空設定である。",
+        "lifecycle": "accepted"
+      },
+      {
+        "op": "create_node",
+        "ref": "audit_retention",
+        "kind": "agreement",
+        "title": "監査ログの保持期間",
+        "body": "監査ログは90日（2160時間）保持する。通常ログの保持期間を変更しても、監査ログの期間は自動的には変わらない。これは展示用の架空設定である。",
+        "lifecycle": "accepted"
+      },
+      {
+        "op": "create_node",
+        "ref": "normal_reason",
+        "kind": "rationale",
+        "title": "通常ログの期間を分けた理由",
+        "body": "展示シナリオでは、通常ログと監査ログを異なる用途として扱い、それぞれの保持期間を別に判断できるようにする。",
+        "lifecycle": "accepted"
+      },
+      {
+        "op": "create_node",
+        "ref": "unrelated_question",
+        "kind": "question",
+        "title": "検索表示の整理候補",
+        "body": "将来の検索表示を整理するか検討する。今回のログ保持期間の変更には関係しない未整理の問い。",
+        "lifecycle": "draft"
+      },
+      {
+        "op": "create_node",
+        "ref": "app_artifact",
+        "kind": "artifact",
+        "title": "展示アプリの観測対象",
+        "body": "原素材は同梱examples/demo_project。file: URIは、このseedを適用するときに明示する展示用作業ディレクトリを基準とする。初期ファイルの実バイトを指し、内容変更時は呼出元が再観測してこのartifactの版を更新する。",
+        "lifecycle": "draft",
+        "locator": "file:retention.py",
+        "content_hash": "sha256:ce2d936836d6c5e03882700346050e2798395477159d65dcf843fea272adf2a4"
+      },
+      {
+        "op": "create_node",
+        "ref": "test_artifact",
+        "kind": "artifact",
+        "title": "展示テストの観測対象",
+        "body": "原素材は同梱examples/demo_project。file: URIは、このseedを適用するときに明示する展示用作業ディレクトリを基準とする。初期ファイルの実バイトを指し、内容変更時は呼出元が再観測してこのartifactの版を更新する。",
+        "lifecycle": "draft",
+        "locator": "file:test_retention.py",
+        "content_hash": "sha256:3d6092dd44e2a8a26d04070501f7fe60329ef4b4f65c9f1b049cdd4775fe0db8"
+      },
+      {
+        "op": "create_relation",
+        "ref": "normal_retention_scope",
+        "relation_kind": "scoped_to",
+        "from": "$normal_retention",
+        "to": "$logs_scope",
+        "confirmation": "confirmed",
+        "origin": "system"
+      },
+      {
+        "op": "create_relation",
+        "ref": "audit_retention_scope",
+        "relation_kind": "scoped_to",
+        "from": "$audit_retention",
+        "to": "$logs_scope",
+        "confirmation": "confirmed",
+        "origin": "system"
+      },
+      {
+        "op": "create_relation",
+        "ref": "normal_reason_scope",
+        "relation_kind": "scoped_to",
+        "from": "$normal_reason",
+        "to": "$logs_scope",
+        "confirmation": "confirmed",
+        "origin": "system"
+      },
+      {
+        "op": "create_relation",
+        "ref": "app_artifact_scope",
+        "relation_kind": "scoped_to",
+        "from": "$app_artifact",
+        "to": "$logs_scope",
+        "confirmation": "confirmed",
+        "origin": "system"
+      },
+      {
+        "op": "create_relation",
+        "ref": "test_artifact_scope",
+        "relation_kind": "scoped_to",
+        "from": "$test_artifact",
+        "to": "$logs_scope",
+        "confirmation": "confirmed",
+        "origin": "system"
+      },
+      {
+        "op": "create_relation",
+        "ref": "normal_support",
+        "relation_kind": "supports",
+        "from": "$normal_reason",
+        "to": "$normal_retention",
+        "confirmation": "confirmed",
+        "origin": "system"
+      },
+      {
+        "op": "create_relation",
+        "ref": "normal_implementation",
+        "relation_kind": "implemented_by",
+        "from": "$normal_retention",
+        "to": "$app_artifact",
+        "confirmation": "confirmed",
+        "origin": "system"
+      },
+      {
+        "op": "create_relation",
+        "ref": "audit_implementation",
+        "relation_kind": "implemented_by",
+        "from": "$audit_retention",
+        "to": "$app_artifact",
+        "confirmation": "confirmed",
+        "origin": "system"
+      }
+    ]
+  },
+  "context": {
+    "scope_ids": [],
+    "anchor_node_ids": [],
+    "basis_refs": [],
+    "exploration_note": "新規の展示専用DB。ここに登録する値は全て架空の初期条件であり、実在プロジェクトの合意ではない。"
+  },
+  "options": {
+    "max_related_items": 20
+  }
+}

@@ -1,0 +1,53 @@
+<svg viewBox="0 0 880 400" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <rect width="880" height="400" fill="#ffffff"/>
+  <text x="440" y="24" text-anchor="middle" fill="#1f2328" font-size="14" font-weight="600">影響波及の可視化（認証方式変更の例）</text>
+  <!-- Changed node -->
+  <circle cx="440" cy="82" r="36" fill="#ffebe9" stroke="#cf222e" stroke-width="2"/>
+  <text x="440" y="78" text-anchor="middle" fill="#cf222e" font-size="11" font-weight="700">認証方式</text>
+  <text x="440" y="94" text-anchor="middle" fill="#cf222e" font-size="10">変更対象</text>
+  <!-- Pulse -->
+  <circle cx="440" cy="82" r="56" fill="none" stroke="#cf222e" stroke-width="0.5" opacity="0.3" stroke-dasharray="4,4"/>
+  <circle cx="440" cy="82" r="80" fill="none" stroke="#cf222e" stroke-width="0.5" opacity="0.15" stroke-dasharray="4,4"/>
+  <!-- Direct impact -->
+  <line x1="404" y1="82" x2="240" y2="166" stroke="#cf222e" stroke-width="1.5" opacity="0.5"/>
+  <circle cx="200" cy="186" r="28" fill="#ffebe9" stroke="#cf222e" stroke-opacity="0.6"/>
+  <text x="200" y="182" text-anchor="middle" fill="#cf222e" font-size="10" font-weight="500">ログイン</text>
+  <text x="200" y="196" text-anchor="middle" fill="#cf222e" font-size="9">フロー</text>
+  <line x1="476" y1="82" x2="640" y2="166" stroke="#cf222e" stroke-width="1.5" opacity="0.5"/>
+  <circle cx="680" cy="186" r="28" fill="#ffebe9" stroke="#cf222e" stroke-opacity="0.6"/>
+  <text x="680" y="182" text-anchor="middle" fill="#cf222e" font-size="10" font-weight="500">セッション</text>
+  <text x="680" y="196" text-anchor="middle" fill="#cf222e" font-size="9">管理</text>
+  <line x1="440" y1="118" x2="440" y2="166" stroke="#cf222e" stroke-width="1.5" opacity="0.5"/>
+  <circle cx="440" cy="194" r="28" fill="#ffebe9" stroke="#cf222e" stroke-opacity="0.6"/>
+  <text x="440" y="190" text-anchor="middle" fill="#cf222e" font-size="10" font-weight="500">API</text>
+  <text x="440" y="204" text-anchor="middle" fill="#cf222e" font-size="9">トークン</text>
+  <!-- Indirect impact -->
+  <line x1="200" y1="214" x2="120" y2="272" stroke="#bc4c00" stroke-width="1" opacity="0.4"/>
+  <circle cx="100" cy="292" r="24" fill="#fff1e5" stroke="#bc4c00" stroke-opacity="0.4"/>
+  <text x="100" y="296" text-anchor="middle" fill="#bc4c00" font-size="9" font-weight="500">UI テスト</text>
+  <line x1="200" y1="214" x2="280" y2="272" stroke="#bc4c00" stroke-width="1" opacity="0.4"/>
+  <circle cx="300" cy="292" r="24" fill="#fff1e5" stroke="#bc4c00" stroke-opacity="0.4"/>
+  <text x="300" y="288" text-anchor="middle" fill="#bc4c00" font-size="9" font-weight="500">パスワード</text>
+  <text x="300" y="300" text-anchor="middle" fill="#bc4c00" font-size="9">リセット</text>
+  <line x1="680" y1="214" x2="760" y2="272" stroke="#bc4c00" stroke-width="1" opacity="0.4"/>
+  <circle cx="780" cy="292" r="24" fill="#fff1e5" stroke="#bc4c00" stroke-opacity="0.4"/>
+  <text x="780" y="296" text-anchor="middle" fill="#bc4c00" font-size="9" font-weight="500">タイムアウト</text>
+  <line x1="680" y1="214" x2="600" y2="272" stroke="#bc4c00" stroke-width="1" opacity="0.4"/>
+  <circle cx="580" cy="292" r="24" fill="#fff1e5" stroke="#bc4c00" stroke-opacity="0.4"/>
+  <text x="580" y="288" text-anchor="middle" fill="#bc4c00" font-size="9" font-weight="500">リフレッシュ</text>
+  <text x="580" y="300" text-anchor="middle" fill="#bc4c00" font-size="9">トークン</text>
+  <line x1="440" y1="222" x2="440" y2="272" stroke="#bc4c00" stroke-width="1" opacity="0.4"/>
+  <circle cx="440" cy="292" r="24" fill="#fff1e5" stroke="#bc4c00" stroke-opacity="0.4"/>
+  <text x="440" y="288" text-anchor="middle" fill="#bc4c00" font-size="9" font-weight="500">レート</text>
+  <text x="440" y="300" text-anchor="middle" fill="#bc4c00" font-size="9">リミット</text>
+  <!-- Open question -->
+  <line x1="300" y1="316" x2="300" y2="348" stroke="#cf222e" stroke-width="1" opacity="0.3" stroke-dasharray="3,3"/>
+  <rect x="230" y="348" width="140" height="26" rx="6" fill="#ffebe9" stroke="#cf222e" stroke-opacity="0.3"/>
+  <text x="300" y="366" text-anchor="middle" fill="#cf222e" font-size="9" font-weight="500">OAuth対応はどうする？</text>
+  <text x="300" y="340" text-anchor="middle" fill="#cf222e" font-size="8" font-style="italic">未解決事項がブロック</text>
+  <!-- Legend -->
+  <circle cx="80" cy="388" r="6" fill="#ffebe9" stroke="#cf222e"/>
+  <text x="96" y="392" fill="#656d76" font-size="10">直接影響</text>
+  <circle cx="190" cy="388" r="6" fill="#fff1e5" stroke="#bc4c00"/>
+  <text x="206" y="392" fill="#656d76" font-size="10">間接影響</text>
+</svg>

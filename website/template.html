@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="$lang">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>$title</title>
+    <meta name="description" content="$description" />
+    <meta name="theme-color" content="#f6f5f1" />
+    <link rel="canonical" href="$canonical" />
+    <link rel="alternate" hreflang="en" href="$en_url" />
+    <link rel="alternate" hreflang="ja" href="$ja_url" />
+    <link rel="alternate" hreflang="x-default" href="$en_url" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="LATIS" />
+    <meta property="og:title" content="$title" />
+    <meta property="og:description" content="$description" />
+    <meta property="og:url" content="$canonical" />
+    <meta property="og:locale" content="$locale" />
+    <meta property="og:locale:alternate" content="$other_locale" />
+    <meta property="og:image" content="$image_url" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="LATIS — An Agreement Engine. Consult before you write."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="$title" />
+    <meta name="twitter:description" content="$description" />
+    <meta name="twitter:image" content="$image_url" />
+    <meta
+      name="twitter:image:alt"
+      content="LATIS — An Agreement Engine. Consult before you write."
+    />
+    <link rel="icon" href="${base}favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="${base}style.css" />
+    <script type="application/ld+json">
+      $structured_data
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">$skip</a>
+    <header class="site-header wrap">
+      <a class="brand" href="$home" aria-label="LATIS — $home_label"
+        ><svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
+          <path
+            d="M7 7v18h18M7 7l18 9-18 9"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          />
+          <path
+            d="M3 3h8v8H3zm18 9h8v8h-8zM3 21h8v8H3z"
+            fill="currentColor"
+          /></svg
+        >LATIS</a
+      >
+      <nav aria-label="$nav_label">
+        <a class="desktop-link" href="#concept">$concept_label</a
+        ><a class="desktop-link" href="#direction">$direction_label</a
+        ><span class="languages"
+          ><a href="${base}" lang="en" hreflang="en" $en_current>EN</a
+          ><span aria-hidden="true">/</span
+          ><a href="${base}ja/" lang="ja" hreflang="ja" $ja_current
+            >日本語</a
+          ></span
+        ><a href="$repository">GitHub <span aria-hidden="true">↗</span></a>
+      </nav>
+    </header>
+    <main id="main" class="wrap">$content</main>
+    <footer class="wrap">
+      <span>LATIS <span class="muted">/ An Agreement Engine.</span></span
+      ><span
+        ><a href="$repository/blob/main/LICENSE">MIT License</a
+        ><a href="$repository"
+          >$source_label <span aria-hidden="true">↗</span></a
+        ></span
+      >
+    </footer>
+  </body>
+</html>

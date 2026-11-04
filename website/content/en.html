@@ -1,0 +1,331 @@
+<section class="hero" aria-labelledby="hero-title">
+  <p class="eyebrow">
+    <span class="status-dot"></span> Open source · Design / prototyping phase
+  </p>
+  <p class="full-name">Layered Agreement, Traceability &amp; Intent System</p>
+  <h1 id="hero-title">An Agreement<br /><span>Engine.</span></h1>
+  <div class="hero-bottom">
+    <div>
+      <p class="lead">Manage agreements in software development.</p>
+      <p class="hero-description">
+        LATIS is an Agreement Engine for recording what was agreed, why it was
+        decided, and how it relates to other specifications. Changes are checked
+        against existing agreements and dependencies before a human decides to
+        accept them.
+      </p>
+      <div class="actions">
+        <a class="button" href="$repository"
+          >View on GitHub <span aria-hidden="true">↗</span></a
+        ><a class="text-link" href="#concept"
+          >Read the concept <span aria-hidden="true">↓</span></a
+        >
+      </div>
+    </div>
+    <div class="hero-note">
+      <span class="mono">WHAT LATIS MODELS</span>
+      <p>Agreement state.<br /><em>Explicit relations.</em></p>
+      <span class="mono">State / Relations / History</span>
+    </div>
+  </div>
+  <p class="availability">
+    An open-source project in the design and prototyping phase. The model and
+    workflow below are under development; no installable application is
+    available yet.
+  </p>
+</section>
+<section class="section split" id="problem" aria-labelledby="problem-title">
+  <div>
+    <p class="eyebrow">01 / The problem</p>
+    <h2 id="problem-title">
+      More specifications.<br />Harder to trace decisions.
+    </h2>
+  </div>
+  <div>
+    <p class="large-copy">
+      Written specifications help coding agents implement changes. As a project
+      grows, those specifications branch and overlap across documents.
+    </p>
+    <p>
+      The reason for a decision may be buried in a discussion. A dependency may
+      never have been recorded. Before changing a specification, people and
+      agents have to reconstruct that context.
+    </p>
+    <p>
+      Markdown is useful for reading, writing, and review. But retrieving whole
+      documents makes it hard to isolate relevant decisions, trace the impact of
+      a change, and give agents only the context they need.
+    </p>
+    <p class="margin-note">
+      LATIS uses individual agreements and their relationships as the units for
+      retrieval and impact analysis.
+    </p>
+  </div>
+</section>
+<section class="section" id="concept" aria-labelledby="concept-title">
+  <div class="split">
+    <div>
+      <p class="eyebrow">02 / The core idea</p>
+      <h2 id="concept-title">
+        Record decisions,<br />reasons, and dependencies.
+      </h2>
+    </div>
+    <div>
+      <p class="large-copy">
+        Make it explicit what is agreed, what remains open, and which decisions
+        depend on each other.
+      </p>
+      <p>
+        Each agreement, intent, rationale, and question has a stable identity.
+        Typed relations record dependencies and conflicts. Scopes group them by
+        feature or concern, while provenance and revisions record where
+        decisions came from and how they changed.
+      </p>
+    </div>
+  </div>
+  <figure class="concept-figure">
+    <div
+      class="graph"
+      role="img"
+      aria-label="Conceptual model: an agreement is connected to intent, rationale, open questions, and a dependency. Scope groups the structure. Typed relations, provenance, and revisions make it traceable."
+    >
+      <div class="scope-label mono">
+        SCOPE <span>/ groups agreements by feature or concern</span>
+      </div>
+      <svg
+        class="graph-lines"
+        viewBox="0 0 1000 340"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <path
+          d="M210 90L500 170M210 260L500 170M500 170L790 90M500 170L790 260"
+        />
+      </svg>
+      <div class="graph-node intent">
+        <span class="mono">INTENT</span
+        ><strong>What are we trying to achieve?</strong>
+      </div>
+      <div class="graph-node rationale">
+        <span class="mono">RATIONALE</span><strong>Why this decision?</strong>
+      </div>
+      <div class="graph-node agreement">
+        <span class="mono">AGREEMENT</span><strong>What has been decided</strong
+        ><span class="node-state">state: accepted</span>
+      </div>
+      <div class="graph-node question">
+        <span class="mono">OPEN QUESTION</span
+        ><strong>What remains unresolved?</strong>
+      </div>
+      <div class="graph-node dependency">
+        <span class="mono">DEPENDENCY</span
+        ><strong>What does it rely on?</strong>
+      </div>
+    </div>
+    <figcaption>
+      <span
+        >Conceptual data model · Trace a decision to its reasons and
+        dependencies.</span
+      ><span class="mono">Provenance + Revision history</span>
+    </figcaption>
+  </figure>
+  <p class="section-tail">
+    Markdown remains an import, export, review, and rendering format. Agreement
+    state and relationships belong in the structured model; Markdown is not the
+    only source of truth.
+  </p>
+</section>
+<section
+  class="section consultation"
+  id="consult"
+  aria-labelledby="consult-title"
+>
+  <p class="eyebrow">03 / The operating principle</p>
+  <h2 id="consult-title">Consult before you write.</h2>
+  <p class="large-copy intro">
+    Submit a change request as a proposal before writing it into the accepted
+    specification. Consult LATIS for related agreements, conflicts, and
+    dependencies, then let a human decide whether to accept it.
+  </p>
+  <ol class="flow">
+    <li>
+      <span class="mono step">01 / INPUT</span>
+      <h3>Change request</h3>
+      <p>Shape the intent into a <strong>Proposal</strong>.</p>
+    </li>
+    <li>
+      <span class="mono step">02 / CONSULT</span>
+      <h3>Consult LATIS</h3>
+      <p>
+        Review existing agreements, conflicts, dependencies, scope, and open
+        questions.
+      </p>
+    </li>
+    <li>
+      <span class="mono step">03 / DECIDE</span>
+      <h3>Human decision</h3>
+      <p>
+        Review the consultation results. Accept, revise, or reject the proposal.
+      </p>
+    </li>
+    <li>
+      <span class="mono step">04 / APPLY</span>
+      <h3>Accepted change</h3>
+      <p>
+        Apply the accepted change and save its provenance and revision history.
+      </p>
+    </li>
+  </ol>
+  <div class="consult-note">
+    <strong
+      >Consulting does not change an agreement. Only accepted changes are
+      saved.</strong
+    >
+    <p>
+      Consultation sessions are not normally stored. Acceptance updates the
+      agreement model; documents can then be generated or updated. LATIS
+      provides information for the decision, rather than automatically deciding
+      correctness or resolving every contradiction.
+    </p>
+  </div>
+  <details>
+    <summary>
+      A concrete example: changing search order
+      <span aria-hidden="true">+</span>
+    </summary>
+    <div class="example">
+      <p><strong>Proposal:</strong> show the newest search results first.</p>
+      <p>
+        <strong>Existing agreement:</strong> results default to relevance. A
+        question about pinned results is still open.
+      </p>
+      <p>
+        <strong>Decision:</strong> should the proposal replace the existing
+        agreement, apply only in a narrower scope, or be revised? A human
+        decides before the accepted change is applied.
+      </p>
+      <a href="$repository/blob/main/docs/LATIS_API.ja.md"
+        >Explore the proposed API example (Japanese) ↗</a
+      >
+    </div>
+  </details>
+</section>
+<section class="section split" id="context" aria-labelledby="context-title">
+  <div>
+    <p class="eyebrow">04 / Context for coding agents</p>
+    <h2 id="context-title">Give agents context<br />for the current task.</h2>
+    <p class="principle">AI-compatible, not AI-dependent.</p>
+  </div>
+  <div>
+    <p class="large-copy">
+      Return the agreements and constraints relevant to a task instead of entire
+      specification documents.
+    </p>
+    <p>
+      The design calls for a compact context bundle that also includes the
+      reasons behind those decisions, unresolved questions in the same scope,
+      and a short summary of the relevant feature or concern.
+    </p>
+    <div class="bundle">
+      <div class="mono">TASK → RELEVANT CONTEXT</div>
+      <ul>
+        <li>Agreements &amp; constraints</li>
+        <li>Rationale</li>
+        <li>Open questions</li>
+        <li>Scope context</li>
+      </ul>
+    </div>
+    <p>
+      People can inspect the same agreements and relationships. AI can assist
+      with retrieval and queries, but the core data model does not depend on
+      AI-generated answers.
+    </p>
+  </div>
+</section>
+<section class="section" id="comparison" aria-labelledby="comparison-title">
+  <p class="eyebrow">05 / Compared with document-first workflows</p>
+  <h2 id="comparison-title">Use agreements as the unit of management.</h2>
+  <div class="comparison">
+    <div>
+      <h3>Document-first</h3>
+      <ol>
+        <li>Documents</li>
+        <li>Sections</li>
+        <li>Text diff</li>
+        <li>Agent reads documents</li>
+      </ol>
+    </div>
+    <div>
+      <h3>LATIS <span class="mono">PROPOSED MODEL</span></h3>
+      <ol>
+        <li>Agreements</li>
+        <li>Typed relations</li>
+        <li>Impact, rationale &amp; scope</li>
+        <li>Query-specific context</li>
+      </ol>
+    </div>
+  </div>
+  <p class="section-tail">
+    LATIS shares the emphasis on explicit specifications found in workflows such
+    as OpenSpec. Its storage model also treats agreements and relationships as
+    structured data independent of documents.
+  </p>
+</section>
+<section class="section split" id="direction" aria-labelledby="direction-title">
+  <div>
+    <p class="eyebrow">06 / Current direction</p>
+    <h2 id="direction-title">Lightweight storage.<br />Inspectable data.</h2>
+    <p>Proposed prototype architecture</p>
+  </div>
+  <div>
+    <dl class="architecture">
+      <div>
+        <dt>Storage</dt>
+        <dd>SQLite, typed nodes, typed directed relations</dd>
+      </div>
+      <div>
+        <dt>Retrieval</dt>
+        <dd>FTS, optional vector search</dd>
+      </div>
+      <div>
+        <dt>Traceability</dt>
+        <dd>Stable identity, provenance, revision history</dd>
+      </div>
+      <div>
+        <dt>Interfaces</dt>
+        <dd>
+          Headless API, Markdown import / export, query-specific graph views
+        </dd>
+      </div>
+    </dl>
+    <p>
+      This is the planned starting point for the prototype. Rules for handling
+      conflicts and tracing impact across scope boundaries are still being
+      designed.
+    </p>
+    <a class="text-link" href="$repository/blob/main/docs/LATIS_Spec.ja.md"
+      >Read the design specification (Japanese) ↗</a
+    >
+  </div>
+</section>
+<section class="section closing" id="open-source" aria-labelledby="open-title">
+  <p class="eyebrow">
+    <span class="status-dot"></span> Open source / Contribute to the design
+  </p>
+  <h2 id="open-title">Review the design. Share a counterexample.</h2>
+  <p class="large-copy">The design documents and discussion are on GitHub.</p>
+  <p>
+    Concrete workflows, cases the model cannot handle, and architectural
+    objections are welcome. LATIS is still in the design and prototyping phase,
+    and the model is open to change.
+  </p>
+  <a class="button" href="$repository"
+    >Explore LATIS on GitHub <span aria-hidden="true">↗</span></a
+  >
+  <div class="source-links">
+    <a href="$repository/blob/main/README.md">Concept &amp; design</a
+    ><a href="$repository/blob/main/docs/LATIS_API.ja.md">Prototype API (JA)</a
+    ><a href="$repository/blob/main/docs/LATIS_Operation.ja.md"
+      >Operating model (JA)</a
+    >
+  </div>
+</section>

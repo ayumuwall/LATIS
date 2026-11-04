@@ -1,0 +1,28 @@
+<svg viewBox="0 0 880 280" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <rect width="880" height="280" fill="#ffffff"/>
+  <text x="440" y="24" text-anchor="middle" fill="#1f2328" font-size="14" font-weight="600">LATIS が探求する4つの問い</text>
+  <!-- Q1 -->
+  <rect x="20" y="42" width="415" height="100" rx="10" fill="#f0f7ff" stroke="#0969da" stroke-opacity="0.4"/>
+  <text x="44" y="72" fill="#0969da" font-size="22" font-weight="700">01</text>
+  <text x="86" y="68" fill="#1f2328" font-size="13" font-weight="500">合意を構造的に保存すれば、</text>
+  <text x="86" y="88" fill="#1f2328" font-size="13" font-weight="500">仕様駆動開発はより大規模にスケールするか？</text>
+  <text x="86" y="114" fill="#656d76" font-size="11">Markdown だけでは限界がある。しかし構造は？</text>
+  <!-- Q2 -->
+  <rect x="445" y="42" width="415" height="100" rx="10" fill="#faf5ff" stroke="#8250df" stroke-opacity="0.4"/>
+  <text x="469" y="72" fill="#8250df" font-size="22" font-weight="700">02</text>
+  <text x="511" y="68" fill="#1f2328" font-size="13" font-weight="500">エージェントのコンテキストを</text>
+  <text x="511" y="88" fill="#1f2328" font-size="13" font-weight="500">最小限の合意セットに絞れるか？</text>
+  <text x="511" y="114" fill="#656d76" font-size="11">意図を失わず、テキストを減らす。</text>
+  <!-- Q3 -->
+  <rect x="20" y="154" width="415" height="100" rx="10" fill="#f0fff4" stroke="#1a7f37" stroke-opacity="0.4"/>
+  <text x="44" y="184" fill="#1a7f37" font-size="22" font-weight="700">03</text>
+  <text x="86" y="180" fill="#1f2328" font-size="13" font-weight="500">変更を、テキスト差分ではなく</text>
+  <text x="86" y="200" fill="#1f2328" font-size="13" font-weight="500">影響と根拠でレビューできるか？</text>
+  <text x="86" y="226" fill="#656d76" font-size="11">「なぜ」を見失わないレビュー体験。</text>
+  <!-- Q4 -->
+  <rect x="445" y="154" width="415" height="100" rx="10" fill="#fffbeb" stroke="#9a6700" stroke-opacity="0.4"/>
+  <text x="469" y="184" fill="#9a6700" font-size="22" font-weight="700">04</text>
+  <text x="511" y="180" fill="#1f2328" font-size="13" font-weight="500">階層化スコープは、単一のグローバル</text>
+  <text x="511" y="200" fill="#1f2328" font-size="13" font-weight="500">依存グラフより優れたUIになるか？</text>
+  <text x="511" y="226" fill="#656d76" font-size="11">大きなグラフはノイズに沈む。レイヤーで解決。</text>
+</svg>

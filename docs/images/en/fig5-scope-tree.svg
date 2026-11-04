@@ -1,0 +1,51 @@
+<svg viewBox="0 0 880 420" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <rect width="880" height="420" fill="#ffffff"/>
+  <text x="440" y="24" text-anchor="middle" fill="#1f2328" font-size="14" font-weight="600">Scope Tree Example (Messaging App)</text>
+  <!-- Root -->
+  <rect x="320" y="42" width="240" height="42" rx="21" fill="#fff8c5" stroke="#9a6700" stroke-opacity="0.6"/>
+  <text x="440" y="68" text-anchor="middle" fill="#9a6700" font-size="14" font-weight="600">Messaging</text>
+  <!-- Level 2 lines -->
+  <line x1="370" y1="84" x2="200" y2="120" stroke="#9a6700" opacity="0.3" stroke-width="1.5"/>
+  <line x1="440" y1="84" x2="440" y2="120" stroke="#9a6700" opacity="0.3" stroke-width="1.5"/>
+  <line x1="510" y1="84" x2="680" y2="120" stroke="#9a6700" opacity="0.3" stroke-width="1.5"/>
+  <!-- Level 2 -->
+  <rect x="100" y="120" width="200" height="38" rx="19" fill="#fff8c5" stroke="#9a6700" stroke-opacity="0.4"/>
+  <text x="200" y="144" text-anchor="middle" fill="#9a6700" font-size="12" font-weight="600">Inbox Experience</text>
+  <rect x="340" y="120" width="200" height="38" rx="19" fill="#fff8c5" stroke="#9a6700" stroke-opacity="0.4"/>
+  <text x="440" y="144" text-anchor="middle" fill="#9a6700" font-size="12" font-weight="600">Compose</text>
+  <rect x="580" y="120" width="200" height="38" rx="19" fill="#fff8c5" stroke="#9a6700" stroke-opacity="0.4"/>
+  <text x="680" y="144" text-anchor="middle" fill="#9a6700" font-size="12" font-weight="600">Search</text>
+  <!-- Level 3 under Inbox -->
+  <line x1="150" y1="158" x2="110" y2="196" stroke="#9a6700" opacity="0.2" stroke-width="1.5"/>
+  <line x1="250" y1="158" x2="290" y2="196" stroke="#9a6700" opacity="0.2" stroke-width="1.5"/>
+  <rect x="30" y="196" width="160" height="34" rx="17" fill="#fff8c5" stroke="#9a6700" stroke-opacity="0.3"/>
+  <text x="110" y="218" text-anchor="middle" fill="#9a6700" font-size="11" font-weight="500">Message List</text>
+  <rect x="220" y="196" width="160" height="34" rx="17" fill="#fff8c5" stroke="#9a6700" stroke-opacity="0.3"/>
+  <text x="300" y="218" text-anchor="middle" fill="#9a6700" font-size="11" font-weight="500">Thread View</text>
+  <!-- Level 3 under Search -->
+  <line x1="680" y1="158" x2="680" y2="196" stroke="#9a6700" opacity="0.2" stroke-width="1.5"/>
+  <rect x="600" y="196" width="160" height="34" rx="17" fill="#fff8c5" stroke="#9a6700" stroke-opacity="0.3"/>
+  <text x="680" y="218" text-anchor="middle" fill="#9a6700" font-size="11" font-weight="500">Search UX</text>
+  <!-- Agreements on Message List -->
+  <line x1="80" y1="230" x2="60" y2="268" stroke="#0969da" opacity="0.3" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="140" y1="230" x2="190" y2="268" stroke="#cf222e" opacity="0.3" stroke-width="1" stroke-dasharray="4,3"/>
+  <rect x="10" y="268" width="120" height="28" rx="6" fill="#ddf4ff" stroke="#0969da" stroke-opacity="0.4"/>
+  <text x="70" y="287" text-anchor="middle" fill="#0969da" font-size="10" font-weight="500">Sort order agreed</text>
+  <rect x="150" y="268" width="120" height="28" rx="6" fill="#ffebe9" stroke="#cf222e" stroke-opacity="0.4"/>
+  <text x="210" y="287" text-anchor="middle" fill="#cf222e" font-size="10" font-weight="500">Pagination?</text>
+  <!-- Cross-concern scope -->
+  <rect x="370" y="320" width="220" height="38" rx="19" fill="#fbefff" stroke="#8250df" stroke-opacity="0.5"/>
+  <text x="480" y="344" text-anchor="middle" fill="#8250df" font-size="12" font-weight="600">Performance (cross-cutting)</text>
+  <line x1="110" y1="230" x2="390" y2="320" stroke="#8250df" opacity="0.2" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="680" y1="230" x2="570" y2="320" stroke="#8250df" opacity="0.2" stroke-width="1" stroke-dasharray="4,3"/>
+  <!-- Legend -->
+  <rect x="60" y="382" width="760" height="30" rx="6" fill="#f6f8fa" stroke="#d0d7de"/>
+  <circle cx="100" cy="397" r="6" fill="#fff8c5" stroke="#9a6700"/>
+  <text x="116" y="401" fill="#656d76" font-size="11">Scope node</text>
+  <rect x="210" y="391" width="14" height="12" rx="3" fill="#ddf4ff" stroke="#0969da" stroke-opacity="0.5"/>
+  <text x="234" y="401" fill="#656d76" font-size="11">Agreement</text>
+  <rect x="320" y="391" width="14" height="12" rx="3" fill="#ffebe9" stroke="#cf222e" stroke-opacity="0.4"/>
+  <text x="344" y="401" fill="#656d76" font-size="11">Open question</text>
+  <line x1="460" y1="397" x2="500" y2="397" stroke="#8250df" opacity="0.5" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="510" y="401" fill="#656d76" font-size="11">Cross-cutting concern (a node can belong to multiple scopes)</text>
+</svg>
