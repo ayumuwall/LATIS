@@ -1,10 +1,10 @@
 # LATIS 仕様と実装の対応
 
-現行の [Spec](v0.3.0/LATIS_Spec.md) と [API](v0.3.0/LATIS_API.md) を基準に、P0の構造的な契約と、LLMの行動に関する受け入れを分けて追跡する。作業の進捗は [タスク管理票](TASKS.ja.md) で管理する。
+現行の [Spec](v0.3.0/LATIS_Spec.md) と [API](v0.3.0/LATIS_API.md) を基準に、P0とP1の構造的な契約と、LLMの行動に関する受け入れを分けて追跡する。作業の進捗は [タスク管理票](TASKS.ja.md) で管理する。
 
 ## 判定の単位
 
-M1では、入力・出力・保存・変更検知のコア契約を照合し、自動テストと実CLIで確認する。自然文の意味判断、反復探索の選択、必要な打診、独立したLLMセッションの利用はM3で `claude -p --safe-mode` により確認する。Pythonによる既定シナリオの成功を、これらの行動の合格とは扱わない。
+M1では入力・出力・保存・変更検知のP0コア契約を、M2ではP1の子孫Scope検索・Markdown投影を、自動テストと実CLIで確認した。自然文の意味判断、反復探索の選択、必要な打診、独立したLLMセッションの利用はM3で `claude -p --safe-mode` により確認する。Pythonによる既定シナリオの成功を、これらの行動の合格とは扱わない。
 
 ## 規範条項との対応
 
@@ -33,7 +33,7 @@ M1では、入力・出力・保存・変更検知のコア契約を照合し、
 
 | 条項 | 確認した契約 | 主な実装 | 検証 |
 | --- | --- | --- | --- |
-| Spec §8.1、API §5.1 | 既定のaccepted agreement、kind/lifecycle、ScopeのOR、未分類、Scope自身のフィルター、未対応の子孫検索の拒否 | engine._read | C01、C10、E:A02/A20/A21 |
+| Spec §8.1、API §5.1 | 既定のaccepted agreement、kind/lifecycle、ScopeのOR、未分類、Scope自身のフィルター、子孫検索の任意capability | engine._read | C01、C10、E:A02/A20/A21、P01〜P05 |
 | Spec §8.1、API §5.1 | NFKC＋casefold、リテラル部分一致AND、日本語2文字、title一致の順位、ID順、先頭240文字の抜粋、summaryの形 | engine._read、summary | C03、C10、E:A20 |
 | API §5.2〜5.5 | 現在・特定版の詳細、直接関係の方向とフィルター、相手のlifecycle、履歴順・ページ・来歴の重複排除 | engine._read、existing_revision | C11、C32、E:E12 |
 | Spec §7.2、API §5.3 | 内容依存関係のcurrent/changed/untracked、構造関係のnot_applicable、過去版へ現在の状態を混ぜない | basis_status、relation_diagnostics、engine._read | C08、C11、C27、E:A12/E05/E12 |
@@ -158,18 +158,32 @@ C番号は [test_contracts.py](../tests/test_contracts.py) の以下のメソッ
 
 ## P1と保留事項
 
-| 対象 | 現在のコア契約 | 残るタスク |
+P番号は [test_p1.py](../tests/test_p1.py) の同番号で始まるメソッドに対応する。実装は [projection](../latis/projection.py)、engine._read/_backup、storage.publish_directory/rename_directory。
+
+| 条項 | 確認した契約 | 検証 |
 | --- | --- | --- |
-| API §5.1の子孫Scope検索 | 未対応capabilityとして明示的に拒否。`include_descendants=false` の通常検索は維持 | M2-01〜02・07 |
-| API §16.3のMarkdown投影 | 未対応capabilityとして明示的に拒否。JSON exportは完全snapshotのみ | M2-03〜07 |
+| Spec §5.3・8.1、API §5.1 | active/confirmed containsの全深さ・複数経路・複数起点を展開し、元Scopeを含めて重複除去・ID昇順。直接検索とinclude_unscopedを維持 | P01、P02 |
+| API §3.3・5.1 | フラグとexpanded_scope_idsを常に返す。空Scopeは全体検索。cursorはフラグ・展開集合・snapshotに結合し、階層更新時はCURSOR_STALE | P02、P03、C33 |
+| Spec §5.3、API §5.1・8.3 | 子孫をconsultのwatchや効力へ継承せず、子孫だけの更新で親の計画を一律停止しない | P04 |
+| API §14・16.3 | 両capabilityの掲示、未対応時のUNSUPPORTED_FEATUREとdetails.capability、init/restore応答の整合 | P05、P18、E:A21 |
+| API §16.3 | 全体/明示ノード/直接Scopeの選択、同時指定・空配列・未知ID・非Scopeの拒否、0件と全kind/全lifecycle、候補・終了所属の除外 | P06〜P08 |
+| API §16.3 | IDのUTF-8をbase64url化したパス、body以外の完全NodeとScope/来歴/全直接関係、原文bodyのバイト保持 | P09〜P11 |
+| Spec §4.3、API §16.3 | candidate/confirmed・active/retired関係と方向、範囲外端点/basis_refs、古いevidence.subject_refsを保持。範囲外本文や外部ファイルを取得しない | P09、P10 |
+| API §16.3 | indexのDB/graph/snapshot/仕様/選択条件、ID順の一覧と存在するファイルへの相対リンク、Markdown文字のエスケープ | P06、P08、P11、P12 |
+| API §3.2・16.3 | 並行WAL更新時も同じsnapshotから全ファイルを生成。完成後だけ公開し、既存先・空ディレクトリ・symlink・公開競合で上書きしない | P13〜P15 |
+| API §16.3 | 書込/fsync/公開失敗時の一時出力削除とDB保持、投影編集の非反映、Markdown restoreの拒否、CLI終了コード | P16、P17、P19 |
+| API §16.2〜16.3 | 実CLIによるP1利用、完全JSON形式2と復元後の検索を維持。配布wheelの同梱Guide・例 | P18、M2のパッケージ検証 |
+
+| 保留対象 | 現在のコア契約 | 残るタスク |
+| --- | --- | --- |
 | API §15の旧形式移行 | 旧形式・旧basisを推測変換せず拒否 | 自動移行はM6-04 |
 | Spec §8.4・§12〜13の拡張 | 正本と派生索引、主体とモデル、分類と権威等の境界を維持し、未定義のフィールドを拒否 | M6で採否・仕様化 |
 
-P1の拒否応答の検証はE:A21に含む。子孫Scope検索やMarkdown投影そのものを実装済み・受け入れ済みとは扱わない。
+P1のコア契約はM2で実装・検証した。LLMが状況に応じて機能を選ぶこと、実展示環境・ホストされたCI・最終受け入れはM3〜M5で確認する。
 
 ## 検証結果
 
-実行対象はP0初版のコミット `3b52beb` にM1の変更を加えた作業ツリー。Python 3.12.0、Unicode 15.0.0を使用する。実行結果と対象ソースのハッシュは [M1検証記録](M1_VERIFICATION.ja.md) に記録する。
+現在の実行対象はM1完了コミット `7c95c67` にM2の変更を加えた作業ツリー。全94件（P0の75件とP1の19件）の結果と対象ソースの識別情報は [M2検証記録](M2_VERIFICATION.ja.md) に記録する。P0初版 `3b52beb` に対するM1の結果は [M1検証記録](M1_VERIFICATION.ja.md) に保持する。Python 3.12.0、Unicode 15.0.0を使用する。
 
 M1で修正した主な差分は次のとおり。
 
@@ -181,4 +195,6 @@ M1で修正した主な差分は次のとおり。
 - CLI・JSON復元・SQLite内のJSONで重複キーを拒否し、深すぎる入力を契約エラーにする。UTC時刻の有効な表記と原文を保持する。
 - 復元時に版の型、正規化された集合、判断と来歴、変更計画、照合時の参照版、成功応答の作成/更新分類を検査する。記録時刻同士の一致など、仕様にない条件は追加しない。
 
-Claude CLIによる利用テストは本M1では実施しない。コアが提供する情報と操作の確認を終え、LLMの選択・打診・説明の受け入れはM3へ引き継ぐ。
+M2では子孫展開、読み取り専用投影、排他的ディレクトリ公開、P1の入力例と配布物の検査を追加した。階層更新で展開集合が変わった場合も、cursorはDB版の失効を先に判定する。
+
+Claude CLIによる利用テストはM1・M2では実施していない。コアが提供する情報と操作の確認を終え、LLMの選択・打診・説明の受け入れはM3へ引き継ぐ。

@@ -6,13 +6,13 @@
 
 ## 現在地と進める順序
 
-**現在地はM1完了、次のタスクはM2-01。現行仕様の計画は44タスク中18タスク完了。** P0の条項照合と不足の修正を行い、75件の自動テストとパッケージ検証を確認した。P1、Claude CLIによるLLM利用の受け入れは後続の作業。
+**現在地はM2完了、次のタスクはM3-01。現行仕様の計画は44タスク中25タスク完了。** P0とP1の94件の自動テスト、wheel構築・隔離導入・配布CLIを確認した。LLMの探索・判断・説明の受け入れは、M3で `claude -p --safe-mode` を使って行う。詳細は [M2検証記録](M2_VERIFICATION.ja.md) を参照。
 
 | マイルストーン | 到達点 | 完了タスク | 到達判定の依存 |
 | --- | --- | --- | --- |
 | M0 | P0の初版を動作させる | 7 / 7 | なし |
 | M1 | P0を規範仕様と照合して不足を解消する | 11 / 11 | M0 |
-| M2 | P1の子孫Scope検索とMarkdown投影を実装する | 0 / 7 | M1 |
+| M2 | P1の子孫Scope検索とMarkdown投影を実装する | 7 / 7 | M1 |
 | M3 | Claude CLIでLLMを含む利用を受け入れる | 0 / 8 | P0の確認はM1、P1の確認はM2 |
 | M4 | 復旧・配布・文書を含めて運用可能にする | 0 / 6 | M1、M2、M3 |
 | M5 | 現行仕様の完全実装を判定する | 0 / 5 | M1、M2、M3、M4 |
@@ -71,13 +71,13 @@ Pythonによる既定シナリオの成功と、Claudeが自分で探索・照�
 
 完了条件は `search_descendants` と `markdown_export` が仕様どおり動作し、検証を終えた機能だけをmetaで告知すること。基準はAPI §5.1・§14・§16.3。
 
-- [ ] **M2-01 子孫Scopeの展開を実装する。** active/confirmedのcontainsを同じスナップショットで辿り、指定Scope自身と全子孫を重複除去して展開する。`include_unscoped` と既存フィルターを維持し、watchや合意の効力へ継承しない。
-- [ ] **M2-02 子孫Scope検索の応答と回帰を検証する。** `expanded_scope_ids`、順序、空のscope_ids、複数経路、候補・終了関係、cursorの結合と失効、従来の検索結果を確認する。
-- [ ] **M2-03 Markdown投影の選択条件を実装する。** 全体・node_ids・直接のscope_idsを扱い、同時指定を拒否する。暗黙の子孫・未分類・状態による除外を行わず、0件、未知ID、非Scope、既存出力先も契約どおり扱う。
-- [ ] **M2-04 ノードファイルと関係を投影する。** IDをbase64urlで安全なファイル名へ変換する。JSONのfront matterへNodeの保存フィールド、Scope、来歴参照、直接関係を含め、bodyの原文を保持する。候補・終了関係、範囲外の端点、固定subject_refsも残す。
-- [ ] **M2-05 indexと版の表示を実装する。** DB・snapshot・仕様版・選択条件・ID順の一覧・相対リンクを出す。範囲外のノードへ生成されていないファイルリンクを作らない。Unicodeや不透明なIDも検証する。
-- [ ] **M2-06 投影の一貫性と出力失敗を検証する。** すべてのファイルを同じDB版から生成し、新しい出力先へ完成物を公開する。失敗時の部分出力・上書きを防ぎ、投影編集でDBが変わらず、Markdownをrestoreできないことを確認する。
-- [ ] **M2-07 P1の告知と利用文書を仕上げる。** 両capability、CLI応答、Guide・実装ガイド・例を整合させる。JSON exportの完全性とP0の全回帰を維持し、P1の受け入れ結果を対応表へ記録する。
+- [x] **M2-01 子孫Scopeの展開を実装する。** active/confirmedのcontainsを同じスナップショットで辿り、指定Scope自身と全子孫を重複除去して展開する。`include_unscoped` と既存フィルターを維持し、watchや合意の効力へ継承しない。 完了の根拠：[P1対応表](SPEC_COVERAGE.ja.md#p1と保留事項)、[M2検証記録](M2_VERIFICATION.ja.md)。
+- [x] **M2-02 子孫Scope検索の応答と回帰を検証する。** `expanded_scope_ids`、順序、空のscope_ids、複数経路、候補・終了関係、cursorの結合と失効、従来の検索結果を確認する。 完了の根拠：[P1対応表](SPEC_COVERAGE.ja.md#p1と保留事項)、[M2検証記録](M2_VERIFICATION.ja.md)。
+- [x] **M2-03 Markdown投影の選択条件を実装する。** 全体・node_ids・直接のscope_idsを扱い、同時指定を拒否する。暗黙の子孫・未分類・状態による除外を行わず、0件、未知ID、非Scope、既存出力先も契約どおり扱う。 完了の根拠：[P1対応表](SPEC_COVERAGE.ja.md#p1と保留事項)、[M2検証記録](M2_VERIFICATION.ja.md)。
+- [x] **M2-04 ノードファイルと関係を投影する。** IDをbase64urlで安全なファイル名へ変換する。JSONのfront matterへNodeの保存フィールド、Scope、来歴参照、直接関係を含め、bodyの原文を保持する。候補・終了関係、範囲外の端点、固定subject_refsも残す。 完了の根拠：[P1対応表](SPEC_COVERAGE.ja.md#p1と保留事項)、[M2検証記録](M2_VERIFICATION.ja.md)。
+- [x] **M2-05 indexと版の表示を実装する。** DB・snapshot・仕様版・選択条件・ID順の一覧・相対リンクを出す。範囲外のノードへ生成されていないファイルリンクを作らない。Unicodeや不透明なIDも検証する。 完了の根拠：[P1対応表](SPEC_COVERAGE.ja.md#p1と保留事項)、[M2検証記録](M2_VERIFICATION.ja.md)。
+- [x] **M2-06 投影の一貫性と出力失敗を検証する。** すべてのファイルを同じDB版から生成し、新しい出力先へ完成物を公開する。失敗時の部分出力・上書きを防ぎ、投影編集でDBが変わらず、Markdownをrestoreできないことを確認する。 完了の根拠：[P1対応表](SPEC_COVERAGE.ja.md#p1と保留事項)、[M2検証記録](M2_VERIFICATION.ja.md)。
+- [x] **M2-07 P1の告知と利用文書を仕上げる。** 両capability、CLI応答、Guide・実装ガイド・例を整合させる。JSON exportの完全性とP0の全回帰を維持し、P1の受け入れ結果を対応表へ記録する。 完了の根拠：[P1対応表](SPEC_COVERAGE.ja.md#p1と保留事項)、[M2検証記録](M2_VERIFICATION.ja.md)。
 
 ## M3 Claude CLIによるLLM利用の受け入れ
 

@@ -1,8 +1,12 @@
 """SQLite正本、履歴の再構成、一貫した退避・復元。"""
 
+import ctypes
+import errno
 import os
 import re
+import shutil
 import sqlite3
+import sys
 import tempfile
 from pathlib import Path
 
@@ -209,6 +213,52 @@ def publish(destination, writer):
             fail("DESTINATION_EXISTS", "出力先が既に存在します。", 409)
     finally:
         os.unlink(temporary)
+    return str(destination)
+
+
+def rename_directory(source, destination):
+    """存在確認との競合でも空ディレクトリを上書きしない、排他的な公開。"""
+    if os.name == "nt":
+        os.rename(source, destination)
+        return
+    library = ctypes.CDLL(None, use_errno=True)
+    if sys.platform == "darwin":
+        rename = library.renamex_np
+        rename.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.c_uint]
+        args = (os.fsencode(source), os.fsencode(destination), 0x4)  # RENAME_EXCL
+    elif sys.platform.startswith("linux") and hasattr(library, "renameat2"):
+        rename = library.renameat2
+        rename.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint]
+        args = (-100, os.fsencode(source), -100, os.fsencode(destination), 1)  # RENAME_NOREPLACE
+    else:
+        raise OSError(errno.ENOTSUP, "排他的なディレクトリ公開に未対応の環境です。")
+    rename.restype = ctypes.c_int
+    if rename(*args) != 0:
+        code = ctypes.get_errno()
+        raise OSError(code, os.strerror(code), str(destination))
+
+
+def publish_directory(destination, writer):
+    require("\0" not in destination, "出力先にNULは使用できません。")
+    destination = Path(destination).absolute()
+    require(not destination.exists() and not destination.is_symlink(), "出力先が既に存在します。", "DESTINATION_EXISTS", 409)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    temporary = Path(tempfile.mkdtemp(prefix=".latis-", dir=destination.parent))
+    try:
+        writer(temporary)
+        for path in temporary.rglob("*"):
+            if path.is_file():
+                with path.open("rb") as stream:
+                    os.fsync(stream.fileno())
+        try:
+            rename_directory(temporary, destination)
+        except OSError as exc:
+            if exc.errno in {errno.EEXIST, errno.ENOTEMPTY} or destination.exists() or destination.is_symlink():
+                fail("DESTINATION_EXISTS", "出力先が既に存在します。", 409)
+            raise
+    finally:
+        if temporary.exists():
+            shutil.rmtree(temporary)
     return str(destination)
 
 

@@ -8,8 +8,8 @@ import sqlite3
 import unicodedata
 from pathlib import Path
 
-from . import storage
-from .model import (SPEC, RULES, LIMITS, OPERATIONS, CONTENT, RELATIONS, KINDS, STATES, CONFIRMATIONS,
+from . import projection, storage
+from .model import (SPEC, RULES, LIMITS, OPERATIONS, CAPABILITIES, CONTENT, RELATIONS, KINDS, STATES, CONFIRMATIONS,
                     Error, boolean, canonical, change_set, choice, context, decode_json, digest, fail, integer,
                     memberships, now, obj, proposal, record, reference, refs, require, string,
                     strings, transition, uid, validate_graph)
@@ -93,8 +93,8 @@ def page(items, request, filters, state, operation):
             offset = integer(raw["offset"], 0)
         except (ValueError, UnicodeError, Error):
             fail("INVALID_REQUEST", "cursorが不正です。")
-        require(raw["operation"] == operation and raw["filters"] == filters, "cursorの検索条件が異なります。")
         require(raw["identity"] == identity, "DB版が変わりました。検索し直してください。", "CURSOR_STALE", 409)
+        require(raw["operation"] == operation and raw["filters"] == filters, "cursorの検索条件が異なります。")
     selected = items[offset:offset + limit]
     more = offset + limit < len(items)
     next_cursor = None
@@ -104,6 +104,8 @@ def page(items, request, filters, state, operation):
 
 
 class Engine:
+    capabilities = CAPABILITIES
+
     def __init__(self, path):
         self.path = Path(path).absolute()
         self.meta = {}
@@ -133,7 +135,7 @@ class Engine:
                 elif operation == "consult":
                     response = envelope(self._consult(request, state), self.meta)
                 elif operation in {"backup", "export"}:
-                    response = self._backup(operation, request, conn, data)
+                    response = self._backup(operation, request, conn, data, state)
                 else:
                     response = envelope(self._read(operation, request, data, state), self.meta)
                 conn.commit()
@@ -153,16 +155,29 @@ class Engine:
     def _read(self, operation, request, data, state):
         if operation == "meta":
             obj(request, {})
-            return dict(api_version="v1", **state["meta"], capabilities=OPERATIONS, limits=LIMITS)
+            return dict(api_version="v1", **state["meta"], capabilities=list(self.capabilities), limits=LIMITS)
         if operation == "search":
             obj(request, {"query", "kinds", "lifecycles", "scope_ids", "include_unscoped", "include_descendants", "limit", "cursor"})
             filters = dict(query=string(request.get("query", ""), True), kinds=strings(request.get("kinds", ["agreement"]), True, KINDS),
                            lifecycles=strings(request.get("lifecycles", ["accepted"]), True, STATES), scope_ids=strings(request.get("scope_ids", [])),
                            include_unscoped=boolean(request.get("include_unscoped", False)), include_descendants=boolean(request.get("include_descendants", False)))
-            require(not filters["include_descendants"], "子孫Scope検索は未対応です。", "UNSUPPORTED_FEATURE", capability="search_descendants")
+            require(not filters["include_descendants"] or "search_descendants" in self.capabilities,
+                    "子孫Scope検索は未対応です。", "UNSUPPORTED_FEATURE", capability="search_descendants")
             for id_ in filters["scope_ids"]:
                 require(target(state, "node", id_)["kind"] == "scope", "scope_idsにはScopeを指定してください。")
-            filters["expanded_scope_ids"] = filters["scope_ids"]
+            expanded = set(filters["scope_ids"])
+            if filters["include_descendants"]:
+                children = {}
+                for rel in state["relations"].values():
+                    if rel["relation_kind"] == "contains" and rel["lifecycle"] == "active" and rel["confirmation"] == "confirmed":
+                        children.setdefault(rel["from_node_id"], []).append(rel["to_node_id"])
+                pending = list(expanded)
+                while pending:
+                    for child in children.get(pending.pop(), []):
+                        if child not in expanded:
+                            expanded.add(child)
+                            pending.append(child)
+            filters["expanded_scope_ids"] = sorted(expanded)
             normalize = lambda text: unicodedata.normalize("NFKC", text).casefold()
             query = normalize(filters["query"])
             terms = query.split()
@@ -172,7 +187,7 @@ class Engine:
                 title, body = normalize(node["title"]), normalize(node["body"])
                 if node["kind"] not in filters["kinds"] or node["lifecycle"] not in filters["lifecycles"]:
                     continue
-                if filters["scope_ids"] and not (set(scopes[node["id"]]) & set(filters["scope_ids"]) or filters["include_unscoped"] and not scopes[node["id"]]):
+                if expanded and not (set(scopes[node["id"]]) & expanded or filters["include_unscoped"] and not scopes[node["id"]]):
                     continue
                 if not all(term in title or term in body for term in terms):
                     continue
@@ -636,7 +651,7 @@ class Engine:
                 data = storage.initial()
                 storage.publish(self.path, lambda temporary: storage.create_file(temporary, data))
             self.meta = data["meta"]
-            return envelope(dict(api_version="v1", **self.meta, capabilities=OPERATIONS, limits=LIMITS), self.meta)
+            return envelope(dict(api_version="v1", **self.meta, capabilities=list(self.capabilities), limits=LIMITS), self.meta)
         obj(request, {"source", "format"}, {"source", "format"})
         source = Path(string(request["source"])).resolve()
         require(not self.path.exists() and not self.path.is_symlink(), "復元先が既に存在します。", "DESTINATION_EXISTS", 409)
@@ -659,16 +674,20 @@ class Engine:
         storage.validate_snapshot(data)
         storage.publish(self.path, lambda temporary: storage.create_file(temporary, data))
         self.meta = data["meta"]
-        return envelope(dict(api_version="v1", **self.meta, capabilities=OPERATIONS, limits=LIMITS), self.meta)
+        return envelope(dict(api_version="v1", **self.meta, capabilities=list(self.capabilities), limits=LIMITS), self.meta)
 
-    def _backup(self, operation, request, conn, data):
+    def _backup(self, operation, request, conn, data, state):
         obj(request, {"destination"} if operation == "backup" else {"destination", "format", "node_ids", "scope_ids"}, {"destination"})
         destination = string(request["destination"])
         format_ = "sqlite" if operation == "backup" else request.get("format", "json")
         string(format_)
         require(format_ in {"sqlite", "json", "markdown"} if operation == "backup" else format_ in {"json", "markdown"}, "未対応の出力形式です。", "UNSUPPORTED_FORMAT")
-        require(format_ != "markdown", "Markdown投影は未対応です。", "UNSUPPORTED_FEATURE", capability="markdown_export")
-        require(not ({"node_ids", "scope_ids"} & set(request)), "JSONは完全スナップショットだけを出力できます。")
+        require(format_ != "markdown" or "markdown_export" in self.capabilities,
+                "Markdown投影は未対応です。", "UNSUPPORTED_FEATURE", capability="markdown_export")
+        if format_ == "markdown":
+            selection, nodes = projection.select(request, state)
+        else:
+            require(not ({"node_ids", "scope_ids"} & set(request)), "JSONは完全スナップショットだけを出力できます。")
         storage.validate_snapshot(data)
         def writer(temporary):
             if format_ == "json":
@@ -679,5 +698,8 @@ class Engine:
                     conn.backup(destination_conn)
                 finally:
                     destination_conn.close()
-        destination = storage.publish(destination, writer)
+        if format_ == "markdown":
+            destination = storage.publish_directory(destination, lambda temporary: projection.write(temporary, state, selection, nodes))
+        else:
+            destination = storage.publish(destination, writer)
         return envelope(dict(format=format_, destination=destination, **{k: self.meta[k] for k in ("database_id", "graph_revision", "snapshot_id")}), self.meta)

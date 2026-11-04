@@ -1,4 +1,4 @@
-name: P0参照実装の検査
+name: P0とP1の参照実装の検査
 
 on:
   push:
@@ -28,7 +28,18 @@ jobs:
           python - <<'PY'
           import subprocess
           import sysconfig
+          import json
+          import tempfile
           from pathlib import Path
-          subprocess.run(["latis", "--db", "/tmp/latis-ci.sqlite", "init"], input=b"{}", check=True)
+          with tempfile.TemporaryDirectory() as directory:
+              def call(operation, request):
+                  result = subprocess.run(["latis", "--db", str(Path(directory) / "ci.sqlite"), operation], input=json.dumps(request).encode(), capture_output=True, cwd=directory, check=True)
+                  response = json.loads(result.stdout)
+                  assert response["ok"], response
+                  return response["data"]
+              assert {"search_descendants", "markdown_export"} <= set(call("init", {})["capabilities"])
+              assert call("search", {"include_descendants": True})["applied_filters"]["expanded_scope_ids"] == []
+              call("export", {"format": "markdown", "destination": str(Path(directory) / "view")})
+              assert (Path(directory) / "view/index.md").is_file()
           assert (Path(sysconfig.get_path("data")) / "share/latis/docs/v0.3.0/LATIS_LLM_Guide.md").is_file()
           PY

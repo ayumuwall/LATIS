@@ -9,7 +9,7 @@ import sys
 from unittest.mock import patch
 
 from latis import Engine, storage
-from latis.model import CONTENT, KINDS, LIMITS, NODE_KEYS, OPERATIONS, RELATIONS, STATES, canonical, now, reference, uid
+from latis.model import CAPABILITIES, CONTENT, KINDS, LIMITS, NODE_KEYS, RELATIONS, STATES, canonical, now, reference, uid
 from tests.support import ContractCase, ROOT, node, relation
 
 
@@ -31,7 +31,7 @@ class ContractTests(ContractCase):
     def test_common_null_unknown_types_and_envelope(self):
         meta = self.ok("meta", {})
         self.assertEqual(meta["limits"], LIMITS)
-        self.assertEqual(meta["capabilities"], OPERATIONS)
+        self.assertEqual(meta["capabilities"], list(CAPABILITIES))
         for field, value in (("query", None), ("kinds", None), ("kinds", []), ("kinds", ["x:rule"]), ("lifecycles", []),
                              ("scope_ids", None), ("include_unscoped", None), ("include_descendants", 1), ("limit", None),
                              ("cursor", ""), ("cursor", 1), ("query", 1.0)):

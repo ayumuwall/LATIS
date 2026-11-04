@@ -15,7 +15,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from latis import Engine
-from latis.model import RULES, canonical, digest, now, uid
+from latis.model import OPERATIONS, RULES, canonical, digest, now, uid
 from latis import storage
 
 from tests.support import ContractCase, ROOT, node, relation
@@ -164,9 +164,10 @@ class EngineTests(ContractCase):
         self.assertGreater(result["validated_at_revision"], result["consulted_at_revision"])
 
     def test_A21_P1_unknown_features_and_old_formats_are_rejected(self):
-        self.error("search", dict(include_descendants=True), "UNSUPPORTED_FEATURE")
+        with patch.object(Engine, "capabilities", tuple(OPERATIONS)):
+            self.error("search", dict(include_descendants=True), "UNSUPPORTED_FEATURE")
+            self.error("export", dict(format="markdown", destination=str(self.directory / "view")), "UNSUPPORTED_FEATURE")
         self.error("search", dict(mode="hybrid"), "INVALID_REQUEST")
-        self.error("export", dict(format="markdown", destination=str(self.directory / "view")), "UNSUPPORTED_FEATURE")
         self.error("export", dict(format="json", destination="x", node_ids=[]), "INVALID_REQUEST")
         data = storage.initial()
         data["format_version"] = 1

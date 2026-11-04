@@ -1,10 +1,10 @@
-# P0参照実装
+# P0とP1の参照実装
 
 規範は [v0.3.0のSpec](v0.3.0/LATIS_Spec.md) と [API](v0.3.0/LATIS_API.md)。本書は実装の起動・検査手順を説明する。安定版リリースや展示受け入れの完了を意味しない。
 
 日付に依存しない作業順、チェック付きの進捗、現行仕様の完全実装までの計画は [タスク管理票](TASKS.ja.md) で管理する。
 
-P0の条項ごとの確認先は [仕様と実装の対応表](SPEC_COVERAGE.ja.md)、M1での修正と実行結果は [M1検証記録](M1_VERIFICATION.ja.md) を参照する。LLMの行動の確認はM3、P1の実装はM2へ引き継ぐ。
+条項ごとの確認先は [仕様と実装の対応表](SPEC_COVERAGE.ja.md)、P0の実行結果は [M1検証記録](M1_VERIFICATION.ja.md)、P1の実行結果は [M2検証記録](M2_VERIFICATION.ja.md) を参照する。LLMの行動の確認はM3で行う。
 
 ## 実行環境
 
@@ -38,9 +38,38 @@ DBの指定は `--db` → `LATIS_DB` → 作業ディレクトリの `.latis/lat
 - 成功済みの同一入力の再送、異入力の拒否、失敗したキーの再利用。
 - artifactの所在・実バイトのハッシュ、固定された検査証拠、実装・検証関係、版変化の診断。
 - 日本語2文字を含むNFKC＋casefoldの部分一致AND検索、安定した順位、DB版に結び付いたcursor。
+- P1の子孫Scope検索とMarkdown投影。`meta.capabilities` に `search_descendants` と `markdown_export` を返す。
 
-P1の `search_descendants/markdown_export` は提供しない。要求には `UNSUPPORTED_FEATURE` を返す。仕様にないフィールド・旧保存形式・Markdown import等も拒否する。
+仕様にないフィールド・旧保存形式・Markdown import等は拒否する。
 コアは外部ファイルを取得せず、テストを実行しない。下記のリハーサルは呼出元スクリプトが現物を観測・実行して結果をCLIへ渡す。
+
+## 子孫Scope検索とMarkdown投影
+
+利用前に `meta` で対応するcapabilityを確認する。以下の `scope_id` は、`search` で `kinds=["scope"]` と必要な `lifecycles` を指定して得た実IDへ置き換える。
+
+```sh
+./bin/latis --db /tmp/latis-example.sqlite search <<'JSON'
+{"scope_ids":["scope_id"],"include_descendants":true,"include_unscoped":false}
+JSON
+```
+
+指定Scopeと、active/confirmedのcontainsで辿れる全子孫を同じsnapshotから展開する。`applied_filters.expanded_scope_ids` で実際の範囲を確認できる。`scope_ids=[]` はフラグによらず全体検索。Scope間の効力・優先・継承やconsultのwatchは変わらない。DBが更新されたら古いcursorを使わず検索し直す。
+
+Markdownはまだ存在しないディレクトリへ出力する。全体の投影は次の例で作れる。
+
+```sh
+./bin/latis --db /tmp/latis-example.sqlite export <<'JSON'
+{"format":"markdown","destination":"/tmp/latis-example-view"}
+JSON
+```
+
+`node_ids` または `scope_ids` に空でない実ID配列を指定すると範囲を選べる。同時指定はできない。Scope指定はactive/confirmed scoped_toによる直接所属だけを選び、Scope自身・子孫・未分類を暗黙に加えない。kindや終端状態による除外もない。0件ならindex.mdだけを作る。
+
+`index.md` のfront matterにはDB・graph・snapshot・仕様版と正規化した選択条件を記し、ID順の表から本文へリンクする。各ノードは `<kind>/node-<base64url(IDのUTF-8、末尾の=なし)>.md`。JSONのfront matterはbody以外の保存フィールド、直接のScope、来歴参照、直接接続した全関係を持ち、その直後に原文bodyを置く。candidate/retired関係、範囲外ID、basis_refs、evidence.subject_refsも保持する。
+
+同じsnapshotから一時ディレクトリに全ファイルを書き、完成後に公開する。既存のファイル・空ディレクトリ・symlinkを上書きせず、競合時は `DESTINATION_EXISTS`。排他的公開にはmacOSのrenamex_np、Linuxのrenameat2、Windowsのrenameを使い、未対応環境ではI/Oエラーとして終了する。ローカルの検証環境はM2検証記録に示す。
+
+投影の編集はDBへ反映されない。復元には完全JSONかSQLiteバックアップを使う。入力例は [examples](v0.3.0/examples/README.md#p1の入力例) にも同梱する。
 
 ## 展示の再現
 
@@ -75,7 +104,7 @@ FORCE_COLOR=1 python3 scripts/rehearse.py --output /tmp/latis-demo-run > /tmp/ag
 FORCE_COLOR=1 python3 -m unittest discover -v > /tmp/agent-logs/github.com-LATIS/test.log 2>&1
 ```
 
-`tests/test_engine.py` はAPI・DBの受け入れを、`tests/test_rehearsal.py` は実CLIと題材の実行を検査する。固定の正規化fixtureは `tests/fixtures/normalization.json`。外部通信は不要。
+`tests/test_engine.py` と `tests/test_contracts.py` はAPI・DBの受け入れを、`tests/test_p1.py` は子孫Scope検索・投影・並行更新・出力失敗を、`tests/test_rehearsal.py` は実CLIと題材の実行を検査する。固定の正規化fixtureは `tests/fixtures/normalization.json`。外部通信は不要。
 
 | 計画の項目 | 自動検査で確認する範囲 | 対話LLMで残す確認 |
 | --- | --- | --- |

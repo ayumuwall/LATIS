@@ -8,10 +8,24 @@
 | --- | --- |
 | [seed_consult.request.json](seed_consult.request.json) | 空の展示DBへ初期設定を登録するための、通常のconsult要求 |
 | [search_logs.request.json](search_logs.request.json) | 採択済み合意を日本語の部分一致で探す要求 |
+| [search_descendants.request.json](search_descendants.request.json) | P1の子孫Scope検索。scope_idを接続先の実IDへ置き換えて使う |
+| [export_markdown.request.json](export_markdown.request.json) | P1の全ノードのMarkdown投影。destinationは未存在のディレクトリへ変更する |
 | [demo_project/retention.py](demo_project/retention.py) | 通常ログ24時間、監査ログ90日の初期アプリ素材 |
 | [demo_project/test_retention.py](demo_project/test_retention.py) | 初期設定と不明な種類の拒否を確認する実行可能なテスト素材 |
 
 全ての保持期間は説明用の架空値であり、実在プロジェクトの規則として採択しない。展示には新しい専用DBを使う。
+
+## P1の入力例
+
+`meta.capabilities` に `search_descendants` / `markdown_export` がある接続先で使う。子孫Scope検索は `scope_id` を実IDへ置き換える。`include_descendants=true` は取得範囲の展開であり、合意やconsultのwatchの継承ではない。空のscope_idsは全体検索になる。
+
+Markdown exportは選択条件を省略すると全ノードの現在版を出す。空でない `node_ids` または `scope_ids` を指定できるが同時には指定しない。Scope指定は直接所属だけを選ぶ。出力先は新しいディレクトリとし、投影の編集をDBへ取り込まない。復元には完全JSONかSQLiteを使う。
+
+```sh
+./bin/latis --db /tmp/latis-example.sqlite export < docs/v0.3.0/examples/export_markdown.request.json
+```
+
+このCLI例と参照実装の検証状況は [実装ガイド](../../IMPLEMENTATION.ja.md) を参照する。LLMによる利用の受け入れとは区別する。
 
 ## 初期状態の準備
 

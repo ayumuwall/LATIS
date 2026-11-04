@@ -20,6 +20,7 @@ LIMITS = dict(max_page_size=100, max_title_chars=240, max_body_bytes=1048576,
               max_request_bytes=4194304, max_change_operations=100, max_locator_chars=2048,
               max_evidence_subject_refs=100)
 OPERATIONS = ["meta", "search", "detail", "relation-detail", "relations", "history", "save-draft", "consult", "apply"]
+CAPABILITIES = (*OPERATIONS, "search_descendants", "markdown_export")
 NODE_KEYS = {"id", "revision_id", "commit_revision", "kind", "title", "body", "lifecycle",
              "locator", "content_hash", "evidence", "created_at", "updated_at"}
 RELATION_KEYS = {"id", "revision_id", "commit_revision", "from_node_id", "to_node_id", "relation_kind",
