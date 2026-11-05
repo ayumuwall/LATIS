@@ -1,0 +1,6 @@
+{
+  "query": "ログ 保持",
+  "kinds": ["agreement"],
+  "lifecycles": ["accepted"],
+  "limit": 10
+}

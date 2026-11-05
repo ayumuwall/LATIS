@@ -1,0 +1,6 @@
+{
+  "scope_ids": ["scope_id"],
+  "include_descendants": true,
+  "include_unscoped": false,
+  "limit": 10
+}

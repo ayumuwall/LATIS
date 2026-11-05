@@ -6,8 +6,10 @@
 **Language:** [English](README.md) | **日本語**
 
 > [!IMPORTANT]
-> 本プロジェクトは現在、構想および設計を進めている初期段階にあります。現時点では、実際にインストールして利用できるアプリケーションや、すぐに試せる実装はまだ公開されていません。
-> この README に記載している内容は、主として構想、設計方針、データモデル、運用イメージを共有するためのものです。現状の位置づけをご理解いただいたうえで、今後の方向性や議論のたたき台としてご覧ください。
+> P0とP1（子孫Scope検索・Markdown投影）の参照実装を追加しました。起動・検査方法は [実装ガイド](docs/IMPLEMENTATION.ja.md)、現行仕様は [docs/v0.3.0](docs/v0.3.0/README.ja.md) を参照してください。
+> 実装の規範はv0.3.0のSpec/APIです。Claude CLIによる利用確認と実行隔離を追加しました。確認した対象版・範囲は [受け入れ記録](docs/ACCEPTANCE.ja.md)、隔離の例外は [サンドボックス](docs/LLM_SANDBOX.ja.md) を参照してください。本文の構想・提案スキーマには旧版の案を含み、現行APIの契約ではありません。
+
+実装の進捗と今後の計画は、日付に依存しない [タスク管理票](docs/TASKS.ja.md) で確認できます。
 
 ![Agreement Graph モック](assets/mock/mock.png)
 
@@ -284,10 +286,10 @@ LATISは、以下の目的で使用することを想定していません：
 
 ## 関連ドキュメント
 
-- [`docs/LATIS_Spec.ja.md`](docs/LATIS_Spec.ja.md) — LATIS の定義、境界、中核機能
-- [`docs/LATIS_API.ja.md`](docs/LATIS_API.ja.md) — プロトタイプ API 仕様
-- [`docs/LATIS_Operation.ja.md`](docs/LATIS_Operation.ja.md) — 日常運用フローと役割分担
-- [`docs/LATIS_Concerns.ja.md`](docs/LATIS_Concerns.ja.md) — 現時点の懸念事項と解決案
+- [`docs/v0.1.0/LATIS_Spec.ja.md`](docs/v0.1.0/LATIS_Spec.ja.md) — LATIS の定義、境界、中核機能
+- [`docs/v0.1.0/LATIS_API.ja.md`](docs/v0.1.0/LATIS_API.ja.md) — プロトタイプ API 仕様
+- [`docs/v0.1.0/LATIS_Operation.ja.md`](docs/v0.1.0/LATIS_Operation.ja.md) — 日常運用フローと役割分担
+- [`docs/v0.1.0/LATIS_Concerns.ja.md`](docs/v0.1.0/LATIS_Concerns.ja.md) — 現時点の懸念事項と解決案
 
 ## 初期の方向性
 
@@ -308,15 +310,9 @@ LATIS は OpenSpec のような仕様主導ワークフローと概念的に近�
 
 ## 現在の状況
 
-本プロジェクトは現在、設計およびプロトタイピングの段階にあります。
+Python 3.12のCLIでP0とP1を実装し、SQLite・JSONの退避と復元、読み取り専用Markdown投影、Claude CLIによる利用を検査しています。現行仕様の完全実装の最終判定はM5で行います。
 
-現在の作業内容は以下の通りです：
-
-- データモデルの検討
-- アグリーメントグラフおよびスコープツリーの概念
-- 影響度重視のUIモックアップ
-- 提案内容および履歴の可視化に関するアイデア
-- トレーサビリティ、設計根拠、および構造化された仕様書作成ワークフローに関する調査
+導入・既定シナリオ・復旧は [実装ガイド](docs/IMPLEMENTATION.ja.md)、条項との対応は [仕様対応表](docs/SPEC_COVERAGE.ja.md)、対象版と結果は [受け入れ記録](docs/ACCEPTANCE.ja.md) を参照してください。FTS・推論検索・グラフUI等の構想は実装済みの機能に含めません。
 
 ## なぜオープンソースなのか
 

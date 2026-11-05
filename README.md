@@ -14,8 +14,10 @@ Markdown documents remain readable, but they are a poor unit for retrieval, impa
 This project is for people who take AI coding seriously, and for those who still believe specification-driven development has not yet reached its practical limit.
 
 > [!IMPORTANT]
-> This project is still at an early planning and design stage. At this time, there is no application or implementation you can install and run yet.
-> The material in this README is intended primarily to communicate the concept, design direction, data model, and operating model. Please read it as a proposal and discussion baseline rather than as documentation for a finished product.
+> P0とP1（子孫Scope検索・Markdown投影）の参照実装を追加しました。起動・検査方法は [実装ガイド](docs/IMPLEMENTATION.ja.md)、現行仕様は [docs/v0.3.0](docs/v0.3.0/README.md) を参照してください。
+> 実装の規範はv0.3.0のSpec/APIです。Claude CLIによる利用確認と実行隔離を追加しました。確認した対象版・範囲は [受け入れ記録](docs/ACCEPTANCE.ja.md)、隔離の例外は [サンドボックス](docs/LLM_SANDBOX.ja.md) を参照してください。本文の構想・提案スキーマには旧版の案を含み、現行APIの契約ではありません。
+
+実装の進捗と今後の計画は、日付に依存しない [タスク管理票](docs/TASKS.ja.md) で確認できます。
 
 ## Table of contents
 
@@ -282,10 +284,10 @@ LATIS is not intended to be:
 
 ## Related documents
 
-- [`docs/LATIS_Spec.ja.md`](docs/LATIS_Spec.ja.md) — LATIS definition, boundaries, and core functions (Japanese)
-- [`docs/LATIS_API.ja.md`](docs/LATIS_API.ja.md) — prototype API spec (Japanese)
-- [`docs/LATIS_Operation.ja.md`](docs/LATIS_Operation.ja.md) — daily operations flow and roles (Japanese)
-- [`docs/LATIS_Concerns.ja.md`](docs/LATIS_Concerns.ja.md) — current concerns and proposals (Japanese)
+- [`docs/v0.1.0/LATIS_Spec.ja.md`](docs/v0.1.0/LATIS_Spec.ja.md) — LATIS definition, boundaries, and core functions (Japanese)
+- [`docs/v0.1.0/LATIS_API.ja.md`](docs/v0.1.0/LATIS_API.ja.md) — prototype API spec (Japanese)
+- [`docs/v0.1.0/LATIS_Operation.ja.md`](docs/v0.1.0/LATIS_Operation.ja.md) — daily operations flow and roles (Japanese)
+- [`docs/v0.1.0/LATIS_Concerns.ja.md`](docs/v0.1.0/LATIS_Concerns.ja.md) — current concerns and proposals (Japanese)
 
 ## Early direction
 
@@ -306,15 +308,9 @@ A nearby experiment may exist as an OpenSpec-oriented extension or fork. LATIS i
 
 ## Current status
 
-This project is in the design and prototyping phase.
+Python 3.12のCLIでP0とP1を実装し、SQLite・JSONの退避と復元、読み取り専用Markdown投影、Claude CLIによる利用を検査しています。現行仕様の完全実装の最終判定はM5で行います。
 
-Current work includes:
-
-- data model exploration
-- agreement graph and scope tree concepts
-- impact-oriented UI mockups
-- proposal and history visualization ideas
-- research into traceability, design rationale, and structured specification workflows
+導入・既定シナリオ・復旧は [実装ガイド](docs/IMPLEMENTATION.ja.md)、条項との対応は [仕様対応表](docs/SPEC_COVERAGE.ja.md)、対象版と結果は [受け入れ記録](docs/ACCEPTANCE.ja.md) を参照してください。FTS・推論検索・グラフUI等の構想は実装済みの機能に含めません。
 
 ## Why open source
 

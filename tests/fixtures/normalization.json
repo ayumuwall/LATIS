@@ -1,0 +1,24 @@
+{
+  "request": {
+    "proposal": {"title": "通常ログの変更", "body": "空白と改行を保持。\n末尾  ", "source_refs": ["資料\n一", "資料\t二"]},
+    "change_set": {
+      "operations": [
+        {"op": "create_relation", "ref": "link", "from": "$a", "to": "$s", "relation_kind": "depends_on", "confirmation": "candidate", "origin": "agent"},
+        {"op": "create_node", "ref": "a", "kind": "agreement", "title": "ＡＢＣ 保持", "body": "通常ログは48時間。\n", "lifecycle": "accepted"},
+        {"op": "create_node", "ref": "s", "kind": "scope", "title": "ログ", "body": "", "lifecycle": "accepted"}
+      ]
+    }
+  },
+  "normalized_request": {
+    "proposal": {"title": "通常ログの変更", "body": "空白と改行を保持。\n末尾  ", "source_refs": ["資料\n一", "資料\t二"]},
+    "change_set": {
+      "operations": [
+        {"op": "create_relation", "ref": "link", "from": "$a", "to": "$s", "relation_kind": "depends_on", "confirmation": "candidate", "origin": "agent", "priority": null, "qualifier": null},
+        {"op": "create_node", "ref": "a", "kind": "agreement", "title": "ＡＢＣ 保持", "body": "通常ログは48時間。\n", "lifecycle": "accepted", "locator": null, "content_hash": null, "evidence": null},
+        {"op": "create_node", "ref": "s", "kind": "scope", "title": "ログ", "body": "", "lifecycle": "accepted", "locator": null, "content_hash": null, "evidence": null}
+      ]
+    },
+    "context": {"scope_ids": [], "anchor_node_ids": [], "basis_refs": [], "exploration_note": ""}
+  },
+  "change_digest": "sha256:daca6a8823579d829b3b5f4b00e213feaab262a69c3eb6dde23ca1c207486b97"
+}

@@ -1,6 +1,6 @@
 <section class="hero" aria-labelledby="hero-title">
   <p class="eyebrow">
-    <span class="status-dot"></span> オープンソース · 設計・プロトタイピング段階
+    <span class="status-dot"></span> オープンソース · v0.3.0プロトタイプ
   </p>
   <p class="full-name">Layered Agreement, Traceability &amp; Intent System</p>
   <h1 id="hero-title" lang="en">An Agreement<br /><span>Engine.</span></h1>
@@ -8,7 +8,7 @@
     <div>
       <p class="lead">ソフトウェア開発の合意を管理する。</p>
       <p class="hero-description">
-        LATISは、何に合意したか、なぜそう決めたか、どの仕様に関係するかを構造化して管理する合意エンジンです。変更時には既存の合意や依存関係を確認し、人間が判断してから反映します。
+        LATISは、何に合意したか、なぜそう決めたか、どの仕様に関係するかを構造化して管理する合意エンジンです。既存の合意や依存関係を照合し、人間の指示・授権に基づく判断を記録して反映します。
       </p>
       <div class="actions">
         <a class="button" href="$repository"
@@ -25,7 +25,7 @@
     </div>
   </div>
   <p class="availability">
-    現在は設計・プロトタイピング段階のOSSです。以下は設計中のモデルと運用方法の説明です。インストールして使えるアプリケーションはまだありません。
+    Python 3.12で動くCLIの参照実装があります。P0の9操作に加え、子孫Scope検索と読み取り専用Markdown投影を実装しています。導入と検査は<a href="$repository/blob/main/docs/IMPLEMENTATION.ja.md">実装ガイド</a>、確認済みの範囲と残作業は<a href="$repository/blob/main/docs/TASKS.ja.md">タスク管理票</a>を参照してください。完全実装の最終判定は継続中です。
   </p>
 </section>
 <section class="section split" id="problem" aria-labelledby="problem-title">
@@ -67,7 +67,7 @@
     <div
       class="graph"
       role="img"
-      aria-label="設計中のデータモデル。合意に、意図、根拠、未解決事項、依存先を関連付ける。スコープは機能や領域ごとに合意をまとめる。出所と変更履歴も記録する。"
+      aria-label="合意と明示関係のデータモデル。合意に、意図、根拠、未解決事項、依存先を関連付ける。スコープは機能や領域ごとに合意をまとめる。出所と変更履歴も記録する。"
     >
       <div class="scope-label mono">
         SCOPE <span>/ 機能や領域ごとに合意をまとめる</span>
@@ -93,7 +93,7 @@
       <div class="graph-node agreement">
         <span class="mono">AGREEMENT / 合意</span
         ><strong>何が決定されたか</strong
-        ><span class="node-state">state: accepted</span>
+        ><span class="node-state">lifecycle: accepted</span>
       </div>
       <div class="graph-node question">
         <span class="mono">OPEN QUESTION / 未解決事項</span
@@ -110,7 +110,7 @@
     </figcaption>
   </figure>
   <p class="section-tail">
-    Markdownは引き続き、取り込み・書き出し・レビュー・表示に使います。合意の状態と関係はLATISの構造化モデルで管理し、Markdownだけを正本にはしません。
+    SQLiteを正本とし、Markdownはレビュー・表示用の読み取り専用投影に使います。投影の編集はDBへ反映されず、復元には完全なJSONかSQLiteの退避を使います。Markdownの取り込みは未実装です。
   </p>
 </section>
 <section
@@ -121,7 +121,7 @@
   <p class="eyebrow">03 / 運用原則</p>
   <h2 id="consult-title">書く前に、打診する。</h2>
   <p class="large-copy intro">
-    変更要求をいきなり確定仕様として書かず、まず提案としてLATISに照会します。既存の合意との競合や依存関係を確認し、人間が採用するかどうかを決めます。
+    合意の採択・意味変更の前に、提案としてLATISへ照合します。判断は人間と授権されたLLMが行い、対象や扱いが明確な既存の指示を再利用します。未解決の判断がある場合だけ打診します。
   </p>
   <ol class="flow">
     <li>
@@ -136,8 +136,8 @@
     </li>
     <li>
       <span class="mono step">03 / DECIDE</span>
-      <h3>人間が判断</h3>
-      <p>照会結果を確認し、採用・修正・見送りを決める。</p>
+      <h3>指示に基づいて判断</h3>
+      <p>既存の授権を再利用し、未解決の判断だけを確認する。</p>
     </li>
     <li>
       <span class="mono step">04 / APPLY</span>
@@ -150,25 +150,25 @@
       >打診だけでは合意を変更しません。採択した変更だけを保存します。</strong
     >
     <p>
-      打診セッション自体は原則として保存しません。採択後に合意を更新し、必要に応じて文書にも反映します。LATISは判断に必要な情報を返しますが、仕様の正しさや矛盾の解決を自動で決めるものではありません。
+      consultはDBを変更しません。applyは参照した版や関連範囲の変化を再検査し、判断の記録と変更を一括保存します。関連候補は探索の手掛かりであり、仕様の正しさや意味的な競合の解決を自動で保証するものではありません。
     </p>
   </div>
   <details>
     <summary>
-      具体例：検索結果の並び順を変える <span aria-hidden="true">+</span>
+      具体例：通常ログの保持期間を変える <span aria-hidden="true">+</span>
     </summary>
     <div class="example">
-      <p><strong>提案：</strong>検索結果を新しい順に表示したい。</p>
+      <p><strong>提案：</strong>障害調査のため、通常ログだけ48時間保持したい。</p>
       <p>
         <strong>既存合意：</strong
-        >既定は関連度順。ピン留め項目の優先順位も、まだ未解決。
+        >通常ログは24時間、監査ログは90日。それぞれの期間は別に判断する。
       </p>
       <p>
         <strong>判断：</strong
-        >既存合意を置き換えるか、適用するスコープを絞るか、提案を修正するか。人間が判断した後に、採択した変更を反映します。
+        >対象と扱いが明示された依頼を再利用し、通常ログを同じIDで48時間へ改訂します。監査ログは維持し、実物を検査した結果は新しい証拠へ残します。
       </p>
-      <a href="$repository/blob/main/docs/LATIS_API.ja.md"
-        >API設計の具体例を読む ↗</a
+      <a href="$repository/blob/main/docs/v0.3.0/LATIS_API.md"
+        >現行APIと操作例を読む ↗</a
       >
     </div>
   </details>
@@ -231,7 +231,7 @@
   <div>
     <p class="eyebrow">06 / 現在の方向性</p>
     <h2 id="direction-title">SQLiteを中心とした<br />シンプルな構成。</h2>
-    <p>プロトタイプで想定する構成</p>
+    <p>v0.3.0の参照実装</p>
   </div>
   <div>
     <dl class="architecture">
@@ -241,7 +241,7 @@
       </div>
       <div>
         <dt>検索</dt>
-        <dd>FTS、任意のベクトル検索</dd>
+        <dd>決定的な部分一致検索、明示した子孫Scopeの検索</dd>
       </div>
       <div>
         <dt>追跡可能性</dt>
@@ -250,15 +250,14 @@
       <div>
         <dt>接続・表現</dt>
         <dd>
-          Headless
-          API、Markdownの取り込み・書き出し、問い合わせに応じたグラフビュー
+          JSON入出力のCLI、SQLite・JSONの退避と復元、読み取り専用Markdown投影
         </dd>
       </div>
     </dl>
     <p>
-      この構成でプロトタイプを検討しています。競合をどう扱うか、スコープを越えてどこまで影響を辿るかなど、詳細なルールは設計中です。
+      Coreは外部実行依存なしで動作します。FTS・ベクトル検索・グラフUIは未実装です。Scopeの親子は自動的な合意の継承や優先関係を意味しません。LLM利用の検証にはClaude CLIを使い、既定シナリオの保存結果とライブ実行を区別します。
     </p>
-    <a class="text-link" href="$repository/blob/main/docs/LATIS_Spec.ja.md"
+    <a class="text-link" href="$repository/blob/main/docs/v0.3.0/LATIS_Spec.md"
       >設計仕様を読む ↗</a
     >
   </div>
@@ -277,7 +276,7 @@
   >
   <div class="source-links">
     <a href="$repository/blob/main/README.ja.md">構想と設計思想</a
-    ><a href="$repository/blob/main/docs/LATIS_API.ja.md">プロトタイプAPI</a
-    ><a href="$repository/blob/main/docs/LATIS_Operation.ja.md">運用モデル</a>
+    ><a href="$repository/blob/main/docs/v0.3.0/LATIS_API.md">プロトタイプAPI</a
+    ><a href="$repository/blob/main/docs/v0.3.0/LATIS_Operation.md">運用モデル</a>
   </div>
 </section>

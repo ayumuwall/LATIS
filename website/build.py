@@ -25,14 +25,14 @@ def settings():
 LOCALES = {
     "en": {
         "title": "LATIS — An Agreement Engine for software development",
-        "description": "LATIS models software agreements, their rationale, and dependencies for AI coding and specification-driven development. An open-source project in the design phase.",
+        "description": "LATIS records software agreements, rationale, and dependencies. The v0.3.0 Python CLI implements P0 and P1; final acceptance remains in progress.",
         "locale": "en_US", "other_locale": "ja_JP",
         "skip": "Skip to content", "home_label": "Home", "nav_label": "Main navigation",
         "concept_label": "The concept", "direction_label": "Direction", "source_label": "Source on GitHub",
     },
     "ja": {
         "title": "LATIS — ソフトウェア開発のための合意エンジン",
-        "description": "LATISは、何に合意し、なぜそう決めたか、どの仕様に関係するかを管理する合意エンジンです。変更前に既存の合意や依存関係を確認し、人間が判断します。現在は設計・プロトタイピング段階のOSSです。",
+        "description": "LATISは合意・理由・依存関係を記録する合意エンジンです。v0.3.0のPython CLIでP0とP1を実装し、人間の指示・授権に基づく変更を扱います。完全実装の最終判定は継続中です。",
         "locale": "ja_JP", "other_locale": "en_US",
         "skip": "本文へ移動", "home_label": "ホーム", "nav_label": "メインナビゲーション",
         "concept_label": "基本アイデア", "direction_label": "設計の方向性", "source_label": "GitHubのソース",
@@ -58,7 +58,7 @@ def build():
             "alternateName": "Layered Agreement, Traceability & Intent System",
             "description": labels["description"], "url": canonical,
             "codeRepository": repository, "license": "https://spdx.org/licenses/MIT.html",
-            "developmentStatus": "Design and prototyping; no installable application yet",
+            "developmentStatus": "v0.3.0 reference CLI; final acceptance in progress",
             "inLanguage": lang,
         }
         values = {**labels, "lang": lang, "canonical": canonical, "base": base,

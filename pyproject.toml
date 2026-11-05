@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "latis"
+version = "0.3.0"
+description = "Layered Agreement, Traceability & Intent System"
+requires-python = ">=3.12,<3.13"
+dependencies = []
+
+[project.scripts]
+latis = "latis.cli:main"
+
+[tool.setuptools]
+packages = ["latis"]
+
+[tool.setuptools.data-files]
+"share/latis/docs/v0.3.0" = ["docs/v0.3.0/*.md"]
+"share/latis/docs/v0.3.0/examples" = ["docs/v0.3.0/examples/README.md", "docs/v0.3.0/examples/*.json"]
+"share/latis/docs/v0.3.0/examples/demo_project" = ["docs/v0.3.0/examples/demo_project/*.py"]

@@ -1,0 +1,31 @@
+name: P0とP1の参照実装の検査
+
+on:
+  push:
+    paths: ["latis/**", "bin/**", "scripts/**", "tests/**", "pyproject.toml", ".github/workflows/core.yml", "docs/v0.3.0/**"]
+  pull_request:
+    paths: ["latis/**", "bin/**", "scripts/**", "tests/**", "pyproject.toml", ".github/workflows/core.yml", "docs/v0.3.0/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: 構文検査
+        run: python -m compileall -q latis scripts tests
+      - name: API・保存・実CLIの受け入れ検査
+        run: python -m unittest discover -v
+      - name: 専用コピーから配布物を構築し新しい環境で検査
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          from scripts.verify_release import run
+          run(Path(os.environ["RUNNER_TEMP"]) / "latis-distribution")
+          PY

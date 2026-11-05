@@ -1,0 +1,10 @@
+#!/usr/bin/env python3
+"""未インストールの作業ツリーからCLIを起動する。"""
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from latis.cli import main
+
+raise SystemExit(main())
