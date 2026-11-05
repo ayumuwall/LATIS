@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import Mock, patch
@@ -34,11 +35,12 @@ class ClaudeSandboxTests(unittest.TestCase):
     def test_environment_does_not_pass_tokens_or_shell_injection_variables(self):
         with patch.dict(os.environ, {"HOME": "/example", "PATH": "/bin", "ANTHROPIC_API_KEY": "dummy",
                                     "AWS_SECRET_ACCESS_KEY": "dummy", "BASH_ENV": "/injection", "PYTHONPATH": "/injection",
-                                    "LATIS_SANDBOX_SECRET_CANARY": "dummy"}, clear=True):
+                                    "LATIS_SANDBOX_SECRET_CANARY": "dummy", "PYTHONEXECUTABLE": "/injection"}, clear=True):
             environment = launch_environment()
         self.assertEqual(environment["HOME"], "/example")
         self.assertEqual(environment["PATH"], "/bin")
         self.assertEqual(environment["FORCE_COLOR"], "1")
+        self.assertEqual(environment["PYTHONEXECUTABLE"], str(Path(sys.executable).resolve()))
         self.assertFalse({"ANTHROPIC_API_KEY", "AWS_SECRET_ACCESS_KEY", "BASH_ENV", "PYTHONPATH", "LATIS_SANDBOX_SECRET_CANARY"} & environment.keys())
 
     def test_unsupported_platform_fails_instead_of_running_without_isolation(self):
@@ -47,6 +49,16 @@ class ClaudeSandboxTests(unittest.TestCase):
         with patch("scripts.claude_sandbox.sys.platform", "unsupported"):
             with self.assertRaisesRegex(RuntimeError, "隔離なしでは起動しません"):
                 runtime_read_paths()
+
+    def test_probe_uses_real_interpreter_instead_of_homebrew_alias(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            binary = Path(temporary) / "python-real"
+            binary.touch()
+            alias = Path(temporary) / "python-alias"
+            alias.symlink_to(binary)
+            with patch("scripts.check_claude_sandbox.sys.executable", str(alias)):
+                _, _, tool = prepare_probe(Path(temporary) / "probe")
+            self.assertEqual(tool.read_text().splitlines()[0], f"#!{binary.resolve()}")
 
     def test_relative_shared_library_reference_does_not_widen_policy(self):
         runtime_read_paths.cache_clear()

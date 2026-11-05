@@ -3,6 +3,7 @@
 import json
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 from uuid import uuid4
@@ -60,6 +61,9 @@ class AcceptanceHarnessTests(unittest.TestCase):
         self.assertIn("scripts/claude_sandbox.py", manifest)
         self.assertNotIn("docs/M3_VERIFICATION.ja.md", manifest)
         self.assertIn(str(directory / "tool/runtime"), (directory / "tool/latis").read_text())
+        for name in ("latis", "observe", "check"):
+            self.assertEqual((directory / "tool" / name).read_text().splitlines()[0],
+                             f"#!{Path(sys.executable).resolve()}")
         response = self.cli(directory, "meta", {})
         self.assertEqual(response.returncode, 0, response.stderr)
         self.assertTrue(json.loads(response.stdout)["ok"])

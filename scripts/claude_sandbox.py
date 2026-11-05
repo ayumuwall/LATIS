@@ -64,7 +64,10 @@ def launch_environment(*, runtime=None):
     """既存ログインはClaude本体に任せ、任意の秘密環境変数を子へ渡さない。"""
     names = {"HOME", "USER", "LOGNAME", "PATH", "SHELL", "TMPDIR", "LANG", "LC_ALL", "LC_CTYPE", "TERM"}
     environment = {key: value for key, value in os.environ.items() if key in names}
-    environment.update(FORCE_COLOR="1", PYTHONNOUSERSITE="1", PYTHONDONTWRITEBYTECODE="1")
+    # Homebrewのsitecustomizeがsys.executableを許可外の中継パスへ戻さないよう、
+    # 継承した値ではなく実行中のPythonの実体を固定する。
+    environment.update(FORCE_COLOR="1", PYTHONNOUSERSITE="1", PYTHONDONTWRITEBYTECODE="1",
+                       PYTHONEXECUTABLE=str(Path(sys.executable).resolve()))
     if runtime is not None:
         environment.update(CLAUDE_CODE_TMPDIR=str(Path(runtime).resolve()), TMPDIR=str(Path(runtime).resolve()))
     return environment

@@ -78,3 +78,45 @@ macOS 15.8.1（x86_64）、Claude Code 2.1.318、Python 3.12.0、Unicode 15.0.0�
 | `scripts/llm_acceptance.py` | `29c0b598e16a16c707656f19ab7e2a645d11a9382fe996aaf9440413e8c523af` |
 
 実行記録は `/tmp/latis-sandbox-accepted/report.json` と `/tmp/latis-sandbox-usage/{explicit,retry}/` に置く。各ケースには起動・操作・結果、機械判定、意味レビュー、専用実装コピーのハッシュを保存した。環境・全ソースのハッシュ・集計は `/tmp/latis-sandbox-receipt.json`。固定名の表示ログは `/tmp/agent-logs/github.com-LATIS/e2e.log` と `/tmp/agent-logs/github.com-LATIS/test.log`。いずれも一時領域なので、後日の再現には上記コマンドを使い、消えたログを現在の検証済み状態と取り違えない。
+
+## 2026-11-05 Apple Silicon環境でのM5前確認
+
+基準コミット `904a44a3d04a846bd115ade4bc94f64c65bb3148` から起動経路を修正した作業ツリーを対象に、M5へ進む前の隔離を再確認した。以前のIntel環境の全体テスト・利用受け入れとは別の実行である。
+
+| 項目 | 今回の環境・結果 |
+| --- | --- |
+| OS・CPU | macOS 26.7.1（25G241）、arm64 |
+| Python | Homebrew 3.12.11から作った `.venv`。既定の3.14は使わない |
+| 標準ライブラリ | Unicode 15.0.0、SQLite 3.51.3、OpenSSL 3.6.2 |
+| ビルド用依存 | pip 25.1.1、setuptools 84.2.1、wheel 0.48.0、packaging 26.3。`pip check` 合格 |
+| OS側の道具 | `/usr/bin/sandbox-exec`、`/usr/bin/otool` を確認。共有ライブラリは今回の実体から解決 |
+| Claude | Code 2.1.318。指定・実際の返却モデルとも `claude-opus-5-5`、effort指定high |
+| 拒否試験 | 26/26合格、`report.json` の `passed=true`、終了コード0 |
+| 同じ隔離設定でのsmoke | Guide参照・API検索・実CLIのmeta取得1件。DB・コード保持、機械判定と実応答のレビューが合格 |
+| 関連するPython検査 | `tests.test_claude_sandbox` と `tests.test_llm_acceptance` の17件が合格（10.308秒） |
+
+初回と実体パスを直接指定した2回目は、検査プログラム自体を起動できず不合格だった。OSログでは `/opt/homebrew/Cellar/python@3.12/3.12.11/bin/python3.12` への `file-read-metadata` が拒否されていた。Homebrewの `sitecustomize.py` が `sys.executable` を中継symlinkへ戻すため、実体パスから起動するだけでは生成されるコマンドが変わらなかった。
+
+修正は、試験用コマンドのshebangに解決済みのPython実体を使い、Claude起動環境の `PYTHONEXECUTABLE` も実体へ固定すること。親の同名変数は引き継がない。監査CLIも同じPythonで `bin/latis` を実行し、PATH上の別版・中継symlinkを使わない。`settings_for` と `runtime_read_paths` は基準コミットから変更しておらず、読み書き・通信の許可拡大や隔離外での再実行は行っていない。修正後は `.venv` からの起動で合格した。
+
+拒否試験では外側の読取・書込・作成・一覧、symlink・hardlink、子Python・子シェル・リダイレクト、直接通信、ツール・設定への書込を拒否した。内側の読み書きと監査ファイルへの必要な書込、秘密環境変数の除去、一時領域の分離・削除、Bashの正常終了も確認した。smokeの専用実装コピー12ファイルは、元ソースと実行後も同じSHA-256だった。
+
+再現コマンド（出力先は毎回、未存在のパスへ変更する）:
+
+```sh
+source .venv/bin/activate
+FORCE_COLOR=1 python -m unittest tests.test_claude_sandbox tests.test_llm_acceptance -v
+FORCE_COLOR=1 python -u scripts/check_claude_sandbox.py --output /tmp/latis-sandbox-pre-m5-20261105-arm64-fixed
+# report.jsonのpassed=trueを確認してから、同じ設定で疎通を確認する。
+FORCE_COLOR=1 python -u scripts/llm_acceptance.py --output /tmp/latis-sandbox-pre-m5-20261105-smoke --cases smoke
+```
+
+実行中の出力はプロジェクト内 `.logs/test.log` へ記録し、既存のiTerm2ウインドウで `tail -f` を表示した。この環境には `~/.local/bin/log-window` がなく、AppleScriptで表示を準備・確認した。ログと仮想環境はGitの対象外とする。
+
+| 対象ソース | SHA-256 |
+| --- | --- |
+| `scripts/claude_sandbox.py` | `127e57ac97cadb43755f5e7d68b0850398d17330ca96dce15dd1687c59098107` |
+| `scripts/check_claude_sandbox.py` | `d8766b8e88a5d7b0e8c836715721aaf16385cb591e98ccd6c011480a39fba5ea` |
+| `scripts/llm_acceptance.py` | `10422118e53e21cef97739baf3f245316c78d2daaaa651d9f2afa2b3032a9ea2` |
+
+失敗記録は `/tmp/latis-sandbox-pre-m5-20261105-arm64/` と末尾 `-realpath/`、合格記録は末尾 `-fixed/report.json`、smokeの起動・操作・終了・判定は `/tmp/latis-sandbox-pre-m5-20261105-smoke/smoke/` に保存した。環境・対象ソース・結果の集計は `/tmp/latis-sandbox-pre-m5-20261105-receipt.json`。今回の確認は隔離と疎通の事前検査であり、M5の全回帰・16ケースのLLM利用・代表データの受け入れにはチェックを入れない。

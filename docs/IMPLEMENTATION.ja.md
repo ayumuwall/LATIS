@@ -11,6 +11,17 @@
 Python 3.12.xと標準ライブラリだけで動く。SQLite以外のサーバー、外部AI、HTTP、MCPは不要。
 `core-0.3.0` の検索規則にはUnicode 15.0.0を使う。同じrules_versionで検索結果が変わらないよう実行環境を固定し、異なるUnicodeデータ版は `RULES_CHANGED` で拒否する。Python更新時には正規化fixtureの確認と規則版の判断を行う。
 
+2026-11-05のApple Silicon環境では、既定の `python3` は3.14である。導入済みのHomebrew Python 3.12.11から、プロジェクト専用の仮想環境を用意した。以後のCLI・検査では先に有効化する。
+
+```sh
+/opt/homebrew/opt/python@3.12/bin/python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip --isolated install 'setuptools>=68' wheel
+python --version
+```
+
+本体の実行依存は標準ライブラリだけで、setuptools・wheelはビルド用である。今回の環境と隔離の再確認結果は [M5前の確認記録](LLM_SANDBOX.ja.md#2026-11-05-apple-silicon環境でのm5前確認) を参照する。仮想環境を有効化する前の3.14で、既存のDBや検査を実行しない。
+
 リポジトリ直下から、インストールせず実行できる。
 
 ```sh

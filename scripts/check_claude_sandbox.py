@@ -24,7 +24,7 @@ def prepare_probe(output):
     workspace.mkdir(parents=True)
     (directory / "tool").mkdir()
     tool = directory / "tool/check"
-    tool.write_text(f'''#!{sys.executable}
+    tool.write_text(f'''#!{Path(sys.executable).resolve()}
 import json, os, pathlib, socket, subprocess, sys
 workspace = pathlib.Path({str(workspace)!r})
 outside = pathlib.Path({str(canary)!r})

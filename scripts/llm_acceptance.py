@@ -179,11 +179,11 @@ def prepare_case(directory, name, *, handover_source=None):
     tool = directory / "tool" / "latis"
     tool.parent.mkdir()
     runtime = prepare_runtime(directory)
-    tool.write_text(f'#!{sys.executable}\nimport sys\nsys.path.insert(0, {str(runtime)!r})\nfrom scripts.llm_acceptance import audited_cli\nraise SystemExit(audited_cli({str(directory)!r}))\n')
+    tool.write_text(f'#!{Path(sys.executable).resolve()}\nimport sys\nsys.path.insert(0, {str(runtime)!r})\nfrom scripts.llm_acceptance import audited_cli\nraise SystemExit(audited_cli({str(directory)!r}))\n')
     tool.chmod(0o755)
     for name_ in ("observe", "check"):
         helper = tool.parent / name_
-        helper.write_text(f'#!{sys.executable}\nimport sys\nsys.path.insert(0, {str(runtime)!r})\nfrom scripts.llm_acceptance import workspace_command\nraise SystemExit(workspace_command({str(directory)!r}, {name_!r}))\n')
+        helper.write_text(f'#!{Path(sys.executable).resolve()}\nimport sys\nsys.path.insert(0, {str(runtime)!r})\nfrom scripts.llm_acceptance import workspace_command\nraise SystemExit(workspace_command({str(directory)!r}, {name_!r}))\n')
         helper.chmod(0o755)
     return directory
 
@@ -278,7 +278,8 @@ def audited_cli(directory):
             print("試験の出力先は作業コピー内に限定します。", file=sys.stderr)
             return 1
     started = time.time_ns()
-    result = subprocess.run([str(ROOT / "bin/latis"), *sys.argv[1:]], input=raw, capture_output=True)
+    # PATH上の別版やHomebrewの中継symlinkを経由せず、同じPythonでCLIを実行する。
+    result = subprocess.run([sys.executable, str(ROOT / "bin/latis"), *sys.argv[1:]], input=raw, capture_output=True)
     request, response = None, None
     try:
         request = json.loads(raw)
