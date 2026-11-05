@@ -9,7 +9,7 @@ import unicodedata
 from pathlib import Path
 
 from . import projection, storage
-from .model import (SPEC, RULES, LIMITS, OPERATIONS, CAPABILITIES, CONTENT, RELATIONS, KINDS, STATES, CONFIRMATIONS,
+from .model import (SPEC, RULES, project_name, LIMITS, OPERATIONS, CAPABILITIES, CONTENT, RELATIONS, KINDS, STATES, CONFIRMATIONS,
                     Error, boolean, canonical, change_set, choice, context, decode_json, digest, fail, integer,
                     memberships, now, obj, proposal, record, reference, refs, require, string,
                     strings, transition, uid, validate_graph)
@@ -115,11 +115,11 @@ class Engine:
         self.exit_code = 0
         self.meta = {}
         try:
-            # core-0.3.0の検索結果が実行環境の更新だけで変わらないようにする。
-            require(unicodedata.unidata_version == "15.0.0", "この実装のcore-0.3.0にはPython 3.12（Unicode 15.0.0）が必要です。", "RULES_CHANGED", 409)
+            # 検索結果が実行環境の更新だけで変わらないようにする。
+            require(unicodedata.unidata_version == "15.0.0", "この実装にはPython 3.12（Unicode 15.0.0）が必要です。", "RULES_CHANGED", 409)
             require(len(canonical(request).encode()) <= LIMITS["max_request_bytes"], "入力が上限を超えています。", "LIMIT_EXCEEDED", 413)
             require(isinstance(request, dict), "入力はJSONオブジェクトです。")
-            if operation in {"init", "restore"}:
+            if operation in {"init", "restore", "migrate"}:
                 return self._maintenance(operation, request)
             require(operation in set(OPERATIONS) | {"backup", "export"}, "操作が未対応です。")
             conn = storage.connect(self.path)
@@ -139,7 +139,7 @@ class Engine:
                 else:
                     response = envelope(self._read(operation, request, data, state), self.meta)
                 conn.commit()
-                self.meta = {k: response["meta"][k] for k in ("database_id", "graph_revision", "snapshot_id", "spec_version", "rules_version")}
+                self.meta.update({k: response["meta"][k] for k in ("database_id", "graph_revision", "snapshot_id", "spec_version", "rules_version")})
                 return response
             finally:
                 conn.close()
@@ -638,21 +638,25 @@ class Engine:
 
     def _maintenance(self, operation, request):
         if operation == "init":
-            obj(request, {})
+            obj(request, {"project_name"}, {"project_name"})
+            name = project_name(request["project_name"])
             if self.path.exists():
                 conn = storage.connect(self.path)
                 try:
                     conn.execute("BEGIN")
                     data = storage.read(conn)
                     storage.validate_snapshot(data)
+                    require(data["meta"]["project_name"] == name, "既存DBのプロジェクト名と異なります。", "PROJECT_NAME_MISMATCH", 409)
                 finally:
                     conn.close()
             else:
-                data = storage.initial()
+                data = storage.initial(name)
                 storage.publish(self.path, lambda temporary: storage.create_file(temporary, data))
             self.meta = data["meta"]
             return envelope(dict(api_version="v1", **self.meta, capabilities=list(self.capabilities), limits=LIMITS), self.meta)
-        obj(request, {"source", "format"}, {"source", "format"})
+        fields = {"source", "format", "project_name"} if operation == "migrate" else {"source", "format"}
+        obj(request, fields, fields)
+        name = project_name(request["project_name"]) if operation == "migrate" else None
         source = Path(string(request["source"])).resolve()
         require(not self.path.exists() and not self.path.is_symlink(), "復元先が既に存在します。", "DESTINATION_EXISTS", 409)
         string(request["format"])
@@ -663,15 +667,35 @@ class Engine:
                 data = decode_json(source.read_bytes())
             except (UnicodeError, ValueError):
                 fail("INVALID_DATABASE", "復元元のJSONが不正です。")
+            legacy = operation == "migrate" and isinstance(data,dict) and data.get("format_version") == 2
         else:
-            conn = storage.connect(source)
+            probe = None
             try:
+                probe = sqlite3.connect(source.as_uri() + "?mode=rw",uri=True)
+                probe.execute("PRAGMA query_only=ON")
+                version = probe.execute("PRAGMA user_version").fetchone()[0]
+            except sqlite3.DatabaseError as exc:
+                if storage.is_busy(exc):
+                    raise
+                fail("INVALID_DATABASE", "復元元のSQLiteが不正です。")
+            finally:
+                if probe is not None:
+                    probe.close()
+            legacy = operation == "migrate" and version == 2
+            conn = storage.connect(source,legacy=legacy)
+            try:
+                conn.execute("PRAGMA query_only=ON")
                 conn.execute("BEGIN")
                 require(conn.execute("PRAGMA integrity_check").fetchone()[0] == "ok", "SQLiteの整合性検査が失敗しました。", "INVALID_DATABASE")
-                data = storage.read(conn)
+                data = storage.read(conn,legacy=legacy)
             finally:
                 conn.close()
-        storage.validate_snapshot(data)
+        storage.validate_snapshot(data,legacy=legacy)
+        if operation == "migrate":
+            # 合意・過去版・来歴・成功応答を改変せず、現在のDB識別情報だけを移行する。
+            data["format_version"] = storage.FORMAT_VERSION
+            data["meta"].update(project_name=name,spec_version=SPEC,rules_version=RULES)
+            storage.validate_snapshot(data)
         storage.publish(self.path, lambda temporary: storage.create_file(temporary, data))
         self.meta = data["meta"]
         return envelope(dict(api_version="v1", **self.meta, capabilities=list(self.capabilities), limits=LIMITS), self.meta)

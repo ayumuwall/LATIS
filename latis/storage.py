@@ -10,15 +10,16 @@ import sys
 import tempfile
 from pathlib import Path
 
-from .model import (SPEC, RULES, NODE_KEYS, RELATION_KEYS, KINDS, RELATIONS, STATES, CONTENT,
+from .model import (SPEC, RULES, LEGACY_SPEC, LEGACY_RULES, project_name, NODE_KEYS, RELATION_KEYS, KINDS, RELATIONS, STATES, CONTENT,
                     ORIGINS, CONFIRMATIONS, Error, canonical, change_set, choice, decode_json, fail, integer, memberships,
                     node_values, now, obj, proposal, record, reference, refs, require, string, strings, timestamp,
                     transition, uid, validate_graph)
 
 APP_ID = 0x4C415449
-SCHEMA = 2
+SCHEMA = 3
+FORMAT_VERSION = 3
 TABLES = ("nodes", "relations", "revisions", "provenance", "commits", "idempotency_records")
-META_KEYS = {"database_id", "graph_revision", "snapshot_id", "rules_version", "spec_version"}
+META_KEYS = {"database_id", "graph_revision", "snapshot_id", "rules_version", "spec_version", "project_name"}
 
 
 def is_busy(exc):
@@ -34,12 +35,16 @@ def parse_record(raw):
     return value
 
 
-def validate_meta(meta):
-    obj(meta, META_KEYS, META_KEYS)
+def validate_meta(meta, *, legacy=False):
+    keys = META_KEYS - {"project_name"} if legacy else META_KEYS
+    obj(meta, keys, keys)
+    if not legacy:
+        project_name(meta["project_name"])
     string(meta["database_id"])
     string(meta["snapshot_id"])
     integer(meta["graph_revision"], 0, 9007199254740991)
-    require(meta["spec_version"] == SPEC and meta["rules_version"] == RULES, "未対応の仕様版です。", "UNSUPPORTED_FORMAT")
+    expected = (LEGACY_SPEC,LEGACY_RULES) if legacy else (SPEC,RULES)
+    require((meta["spec_version"],meta["rules_version"]) == expected, "未対応の仕様版です。", "UNSUPPORTED_FORMAT")
 
 
 def validate_target(value, type_):
@@ -72,20 +77,21 @@ def validate_target(value, type_):
         require((value["relation_kind"] in CONTENT and value["confirmation"] == "confirmed") or not value["basis_refs"], "関係の根拠版が不正です。")
 
 
-def initial():
+def initial(name):
+    project_name(name)
     stamp, snapshot = now(), uid()
-    return dict(format="latis-snapshot", format_version=2,
-                meta=dict(database_id=uid(), graph_revision=0, snapshot_id=snapshot, rules_version=RULES, spec_version=SPEC),
+    return dict(format="latis-snapshot", format_version=FORMAT_VERSION,
+                meta=dict(database_id=uid(), project_name=name, graph_revision=0, snapshot_id=snapshot, rules_version=RULES, spec_version=SPEC),
                 nodes=[], relations=[], revisions=[], provenance=[], idempotency_records=[],
                 commits=[dict(graph_revision=0, snapshot_id=snapshot, created_at=stamp, change_refs=[], membership_changes=[], provenance_id=None)])
 
 
-def connect(path):
+def connect(path, *, legacy=False):
     require(Path(path).is_file(), "DBが存在しません。initで初期化してください。", "TARGET_NOT_FOUND", 404)
     try:
         conn = sqlite3.connect(Path(path).resolve().as_uri() + "?mode=rw", uri=True, timeout=2)
         require(conn.execute("PRAGMA application_id").fetchone()[0] == APP_ID, "LATISのDBではありません。", "INVALID_DATABASE")
-        require(conn.execute("PRAGMA user_version").fetchone()[0] == SCHEMA, "未対応のDB形式です。", "UNSUPPORTED_FORMAT")
+        require(conn.execute("PRAGMA user_version").fetchone()[0] == (2 if legacy else SCHEMA), "未対応のDB形式です。", "UNSUPPORTED_FORMAT")
         schema = list(conn.execute("SELECT type,name,sql FROM sqlite_master"))
         require({name for type_, name, _ in schema if type_ == "table"} == {"metadata", *TABLES} and
                 all(type_ == "table" or type_ == "index" and sql is None for type_, _, sql in schema),
@@ -94,8 +100,7 @@ def connect(path):
             require([row[1] for row in conn.execute(f"PRAGMA table_info({table})")] == ["id", "data"], "未対応のDB列を含みます。", "INVALID_DATABASE")
         require(conn.execute("SELECT count(*) FROM metadata").fetchone()[0] == 1, "DBメタデータが重複しています。", "INVALID_DATABASE")
         meta = parse_record(conn.execute("SELECT data FROM metadata WHERE id=1").fetchone()[0])
-        validate_meta(meta)
-        require(meta["spec_version"] == SPEC and meta["rules_version"] == RULES, "未対応のDB版です。", "UNSUPPORTED_FORMAT")
+        validate_meta(meta,legacy=legacy)
         return conn
     except Error as exc:
         if "conn" in locals():
@@ -111,11 +116,11 @@ def connect(path):
         fail("INVALID_DATABASE", "DBの形式が不正です。", cause=str(exc))
 
 
-def read(conn):
+def read(conn, *, legacy=False):
     try:
-        result = {"format": "latis-snapshot", "format_version": 2,
+        result = {"format": "latis-snapshot", "format_version": 2 if legacy else FORMAT_VERSION,
                   "meta": parse_record(conn.execute("SELECT data FROM metadata WHERE id=1").fetchone()[0])}
-        validate_meta(result["meta"])
+        validate_meta(result["meta"],legacy=legacy)
         for table in TABLES:
             key = {"revisions": "revision_id", "commits": "graph_revision", "idempotency_records": "idempotency_key"}.get(table, "id")
             result[table] = []
@@ -262,10 +267,10 @@ def publish_directory(destination, writer):
     return str(destination)
 
 
-def validate_snapshot(data):
+def validate_snapshot(data, *, legacy=False):
     """不正な記録を切り捨てず、履歴を再生して完全性を検査する。"""
     try:
-        _validate_snapshot(data)
+        _validate_snapshot(data,legacy=legacy)
     except Error as exc:
         if exc.code == "UNSUPPORTED_FORMAT":
             raise
@@ -274,14 +279,16 @@ def validate_snapshot(data):
         fail("INVALID_DATABASE", "スナップショットの構造が不正です。", cause=str(exc))
 
 
-def _validate_snapshot(data):
+def _validate_snapshot(data, *, legacy=False):
     require(isinstance(data, dict), "スナップショットはオブジェクトです。")
-    require(data.get("format") == "latis-snapshot" and type(data.get("format_version")) is int and data["format_version"] == 2,
+    require(data.get("format") == "latis-snapshot" and type(data.get("format_version")) is int and data["format_version"] == (2 if legacy else FORMAT_VERSION),
             "未対応のスナップショット形式です。", "UNSUPPORTED_FORMAT")
     obj(data, {"format", "format_version", "meta", *TABLES}, {"format", "format_version", "meta", *TABLES})
     canonical(data)
     meta = data["meta"]
-    validate_meta(meta)
+    validate_meta(meta,legacy=legacy)
+    historical_pairs = {(LEGACY_SPEC,LEGACY_RULES)} if legacy else {(LEGACY_SPEC,LEGACY_RULES),(SPEC,RULES)}
+    historical_rules = {pair[1] for pair in historical_pairs}
     for table in TABLES:
         require(isinstance(data[table], list), "記録は配列です。")
     collections = {}
@@ -400,7 +407,7 @@ def _validate_snapshot(data):
                 obj(basis, {"schema_version", "database_id", "graph_revision", "snapshot_id", "rules_version", "change_digest", "refs", "watch", "exploration_note"},
                     {"schema_version", "database_id", "graph_revision", "snapshot_id", "rules_version", "change_digest", "refs", "watch", "exploration_note"})
                 integer(basis["graph_revision"], 0, number - 1)
-                require(basis["schema_version"] == "basis-1" and basis["database_id"] == meta["database_id"] and basis["rules_version"] == RULES and
+                require(basis["schema_version"] == "basis-1" and basis["database_id"] == meta["database_id"] and basis["rules_version"] in historical_rules and
                         basis["snapshot_id"] == commits[basis["graph_revision"]]["snapshot_id"], "照合時の基準履歴が不正です。")
                 require(bool(re.fullmatch(r"sha256:[0-9a-f]{64}", basis["change_digest"])), "照合ダイジェストが不正です。")
                 require(refs(basis["refs"]) == basis["refs"], "照合参照が不正です。")
@@ -462,7 +469,7 @@ def _validate_snapshot(data):
         number = response_meta["graph_revision"]
         integer(number, 1, meta["graph_revision"])
         require(number in commits and response_meta["database_id"] == meta["database_id"] and response_meta["snapshot_id"] == commits[number]["snapshot_id"] and
-                response_meta["spec_version"] == SPEC and response_meta["rules_version"] == RULES and response_meta["api_version"] == "v1", "成功応答と履歴が一致しません。")
+                (response_meta["spec_version"],response_meta["rules_version"]) in historical_pairs and response_meta["api_version"] == "v1", "成功応答と履歴が一致しません。")
         require(number > 0 and number not in success_commits, "成功応答のcommitが重複しています。")
         success_commits.add(number)
         result = response["data"]
@@ -481,6 +488,7 @@ def _validate_snapshot(data):
                 {(r["type"], r["id"], r["revision_id"]) for r in result["updated_refs"]} == updated, "成功応答の作成・更新の分類が不正です。")
         if item["operation"] == "apply":
             require(result["validated_at_revision"] == prov["validated_at_revision"] and result["consulted_at_revision"] == prov["consulted_basis"]["graph_revision"], "成功応答の照合版が不正です。")
+            require(response_meta["rules_version"] == prov["consulted_basis"]["rules_version"], "成功応答と照合時の規則版が一致しません。")
     require(success_commits == set(range(1, meta["graph_revision"] + 1)), "成功済み再試行記録が不足しています。")
 
 

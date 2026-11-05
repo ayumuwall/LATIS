@@ -18,7 +18,7 @@ def main():
     try:
         parser = Parser(description="LATIS 合意エンジン（JSON入出力）")
         parser.add_argument("--db", default=None, help="SQLite DBのパス")
-        parser.add_argument("operation", help="meta/search/detail/relation-detail/relations/history/save-draft/consult/apply/init/backup/export/restore")
+        parser.add_argument("operation", help="meta/search/detail/relation-detail/relations/history/save-draft/consult/apply/init/backup/export/restore/migrate")
         args = parser.parse_args()
         engine = Engine(args.db if args.db is not None else os.environ.get("LATIS_DB", ".latis/latis.sqlite"))
         raw = sys.stdin.buffer.read(LIMITS["max_request_bytes"] + 1)

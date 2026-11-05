@@ -49,7 +49,7 @@ class ProcessTests(ContractCase):
         process, _ = self.worker("commit", "save-draft", interrupted)
         response = self.cli("meta", {})
         self.assertEqual(response.returncode, 0, response.stderr)
-        self.assertEqual(json.loads(response.stdout)["meta"], dict(api_version="v1", **before["meta"]))
+        self.assertEqual(json.loads(response.stdout)["meta"], dict(api_version="v1", **{k:v for k,v in before["meta"].items() if k != "project_name"}))
         response = self.cli("search", dict(kinds=["question"], lifecycles=["draft"]))
         self.assertEqual(json.loads(response.stdout)["data"]["items"], [])
         response = self.cli("save-draft", busy)

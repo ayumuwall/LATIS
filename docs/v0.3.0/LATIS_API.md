@@ -1,6 +1,6 @@
 # LATIS API
 
-**版:** v0.3-demo-draft  
+**版:** v0.3-demo-draft.1
 **作成日:** 2026-11-04（日本時間）  
 **状態:** 初期実装の規範的な操作契約。HTTP表記はCLI等へ写像でき、HTTPサーバーの起動自体を必須としない。
 
@@ -16,7 +16,7 @@
 
 本書にないparty、rule、拡張kind、時間条件、hybrid検索、署名、verify、redact、Markdown import、分散マージの操作・フィールドは受理しない。存在しない機能を無視して成功扱いにしない。
 
-2026-11-04の検索拡張に関する追記は、Spec §8.4の責務の境界を明確にするものである。新しい検索mode、Request/Responseフィールド、capability、保存形式を追加せず、spec_version=0.3-demo-draft、rules_version=core-0.3.0を維持する。
+2026-11-04の検索拡張に関する追記は、Spec §8.4の責務の境界を明確にするものである。新しい検索mode、Request/Responseフィールド、capability、保存形式を追加せず、当時はspec_version=0.3-demo-draft、rules_version=core-0.3.0を維持した。2026-11-06のプロジェクト名必須化では§16の通り版を更新する。
 
 ## 2. エンドポイント
 
@@ -40,6 +40,9 @@ CLIは同じ操作名とJSON入出力を提供する。たとえばlatis search�
 
 - UTF-8のJSON。時刻はUTCのRFC 3339文字列とする。
 - IDとrevision_idは不透明な文字列。クライアントが接頭辞や時刻を解釈しない。
+- Spec §5.2.1のA-1等はオブジェクトIDで、正本の作成履歴から導出する。全動作には§5.2.2の「オブジェクトIDで十分に対象を特定できる場面では、オブジェクトIDを使う」原則を適用する。人・LLMへの説明、操作ログ、通知、エラー、履歴、文書ではオブジェクトIDと名称を優先し、内部IDのみの提示を避ける。
+- 現行Coreのid引数には元のidを渡す。接続側でオブジェクトIDとDB・snapshot・必要な版を照合し、操作の原記録は保持する。この規約によるCoreレスポンスやsnapshotのフィールド追加はない。オブジェクトIDの直接入力・共通解決機能はM6-13の未実装事項である。
+- DB metadataのproject_nameは必須のプロジェクト名（Spec §5.1.1）。初期化時に明示指定し、meta操作のdata.project_nameで返す。共通envelope.metaのフィールドは従来通りで、保存済み成功応答へ名前を遡及追加しない。
 - database_idはDB作成時に生成し、バックアップ・復元で保持する。
 - graph_revisionは0以上の整数。JSONで正確に表せる整数の範囲を使う。
 - snapshot_idは各commitに付ける不変の一意ID。初期版0にも生成する。復元後に同じ連番が再び使われても、別の履歴なら異なるIDになる。
@@ -57,8 +60,8 @@ CLIは同じ操作名とJSON入出力を提供する。たとえばlatis search�
   "data": {},
   "meta": {
     "api_version": "v1",
-    "spec_version": "0.3-demo-draft",
-    "rules_version": "core-0.3.0",
+    "spec_version": "0.3-demo-draft.1",
+    "rules_version": "core-0.3.1",
     "database_id": "db_example",
     "graph_revision": 41,
     "snapshot_id": "commit_example_41"
@@ -675,7 +678,7 @@ seedに直接接続するactive/confirmedのimplemented_by・verified_byにつ�
   "database_id": "db_example",
   "graph_revision": 41,
   "snapshot_id": "commit_example_41",
-  "rules_version": "core-0.3.0",
+  "rules_version": "core-0.3.1",
   "change_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
   "refs": [
     {"type": "node", "id": "ag_log_retention", "revision_id": "rev_ag_3"},
@@ -842,7 +845,7 @@ verified_byの固定subject_refsはその観測版を保持したまま統合す
     "database_id": "db_demo",
     "graph_revision": 17,
     "snapshot_id": "commit_demo_17",
-    "rules_version": "core-0.3.0",
+    "rules_version": "core-0.3.1",
     "change_digest": "sha256:3b833b2404de088bc06f809a5a0e1aad08e6912d25025df2e58039aa3021463a",
     "refs": [
       {"type": "node", "id": "ag_retention", "revision_id": "rev_retention_2"},
@@ -916,8 +919,8 @@ PRECONDITION_CHANGED、BASIS_CHANGED、CONTEXT_CHANGEDは409で、対象差分�
   "data": null,
   "meta": {
     "api_version": "v1",
-    "spec_version": "0.3-demo-draft",
-    "rules_version": "core-0.3.0",
+    "spec_version": "0.3-demo-draft.1",
+    "rules_version": "core-0.3.1",
     "database_id": "db_example",
     "graph_revision": 43,
     "snapshot_id": "commit_example_43"
@@ -1021,7 +1024,7 @@ acceptedの意味・適用を変える操作はconsult/applyを通す。save-dra
 
 ## 14. GET /v1/meta
 
-dataにはapi_version、spec_version、rules_version、database_id、graph_revision、snapshot_id、capabilities、limitsを返す。capabilitiesは§2の9操作名を含み、実装済みの場合だけsearch_descendants、markdown_exportを追加する。artifactのevidenceと12種類の関係は本版の必須契約であり、任意機能へ格下げしない。
+dataにはapi_version、spec_version、rules_version、project_name、database_id、graph_revision、snapshot_id、capabilities、limitsを返す。project_nameは前後の空白・制御文字を含まない1〜240文字の必須stringで、null・空文字・空白だけを受理しない。capabilitiesは§2の9操作名を含み、実装済みの場合だけsearch_descendants、markdown_exportを追加する。artifactのevidenceと12種類の関係は本版の必須契約であり、任意機能へ格下げしない。
 
 limitsはmax_page_size=100、max_title_chars=240、max_body_bytes=1048576、max_request_bytes=4194304、max_change_operations=100、max_locator_chars=2048、max_evidence_subject_refs=100を返す。本版はこの既定値で実装する。値を将来変更する場合は契約版へ反映する。
 
@@ -1052,7 +1055,9 @@ v0.2からの自動移行は展示版の対象外とする。旧DB・旧論理�
 
 DBパスは共通オプションのlatis --db PATH、次に環境変数LATIS_DB、どちらもない場合は作業ディレクトリの.latis/latis.sqliteを使う。相対パスは作業ディレクトリから解決し、親ディレクトリに別DBを探して切り替えない。
 
-latis initは、標準入力の{}を受け取り、指定パスに空のDBを作る。database_idと初期snapshot_idを生成し、graph_revision=0とする。spec_version=0.3-demo-draft、rules_version=core-0.3.0を保存する。既に本版の有効なLATIS DBがあれば初期化し直さず、現在のmetaを返す。別形式のファイルなら400 INVALID_DATABASE、旧版等の対応外のLATIS DBなら400 UNSUPPORTED_FORMATを返し、上書きしない。通常の検索・書き込み操作では、存在しないDBを黙って新規作成しない。
+latis initは、標準入力の{"project_name":"ログ管理サービス"}を受け取り、指定パスに空のDBを作る。project_nameは必須。未指定、null、空白だけ、前後の空白・制御文字、241文字以上は400 INVALID_REQUESTで拒否し、DBを作成しない。database_idと初期snapshot_idを生成し、graph_revision=0とする。spec_version=0.3-demo-draft.1、rules_version=core-0.3.1、SQLite user_version=3を保存する。
+
+既に本版の有効なLATIS DBがあれば、同じproject_nameの指定では初期化し直さず現在のmetaを返す。名前が違えば409 PROJECT_NAME_MISMATCHを返し、変更しない。別形式のファイルなら400 INVALID_DATABASE、旧版等の対応外のLATIS DBなら400 UNSUPPORTED_FORMATを返し、上書きしない。通常の検索・書き込み操作では、存在しないDBを黙って新規作成しない。
 
 通常操作のCLI入力は、HTTPのpath parameterとquery/bodyを一つのJSONオブジェクトへまとめる。たとえばdetailはnode_idと任意revision_id、historyはtarget_type、target_id、limit、cursorを受け取る。POST系は本文をそのまま使い、metaは{}とする。
 
@@ -1060,15 +1065,16 @@ CLI終了コードは成功0、契約上のエラー1、予期しない実行障
 
 ### 16.2 退避と移送
 
-保守操作はbackup、export、restoreの3種類とする。これらは既に存在するDBと履歴を一貫した形で退避・移送する操作である。Markdown exportだけは現在状態の閲覧用投影であり、復元形式ではない。外部の仕様文書の取り込みにはsave-draftを使う。
+保守操作はbackup、export、restore、migrateの4種類とする。これらは既に存在するDBと履歴を一貫した形で退避・移送する操作である。Markdown exportだけは現在状態の閲覧用投影であり、復元形式ではない。外部の仕様文書の取り込みにはsave-draftを使う。
 
 | 操作 | stdinのJSON | 効果 |
 | --- | --- | --- |
 | backup | destinationのみ必須（新しいファイルパス） | 一貫したSQLite DBスナップショットを保存 |
-| export | destination必須。formatはjson / markdown、既定json | jsonはformat_version=2の完全な論理スナップショット。markdownは§16.3の任意機能 |
-| restore | source（ファイルパス）、format（sqlite / json）を必須 | --dbで指定した、まだ存在しないDBへ検証して復元 |
+| export | destination必須。formatはjson / markdown、既定json | jsonはformat_version=3の完全な論理スナップショット。markdownは§16.3の任意機能 |
+| restore | source（ファイルパス）、format（sqlite / json）を必須 | 現行形式3を、--dbで指定した未存在DBへ検証して復元 |
+| migrate | source、format（sqlite / json）、project_nameを必須 | 旧形式2または現行形式3を検証し、名前を明示した未存在DBへ移行 |
 
-パス文字列は空でないstringとし、相対パスはCLIの作業ディレクトリから解決する。保守操作にidempotency_keyは付けず、DBのgraph_revisionを進めない。backup/exportの既存出力先、restoreの既存DBは409 DESTINATION_EXISTSで拒否する。失敗した一時出力を完成した退避として扱わず、書き込み途中のDBファイルを単純コピーした結果を一貫したbackupとみなさない。完成物を新しい出力先へ公開してから成功を返す。
+パス文字列は空でないstringとし、相対パスはCLIの作業ディレクトリから解決する。保守操作にidempotency_keyは付けず、DBのgraph_revisionを進めない。backup/exportの既存出力先、restore/migrateの既存DBは409 DESTINATION_EXISTSで拒否する。失敗した一時出力を完成した退避として扱わず、書き込み途中のDBファイルを単純コピーした結果を一貫したbackupとみなさない。完成物を新しい出力先へ公開してから成功を返す。
 
 export/restoreのformatが上表以外の文字列の場合は400 UNSUPPORTED_FORMATとする。exportのjsonでnode_idsやscope_idsを指定することは400 INVALID_REQUESTとし、完全スナップショットを部分輸出へ変えない。format=markdownが既知でもcapabilityがない場合は400 UNSUPPORTED_FEATUREとなる。
 
@@ -1088,11 +1094,17 @@ export/restoreのformatが上表以外の文字列の場合は400 UNSUPPORTED_FO
 {"format":"json","source":"demo-snapshot.json"}
 ```
 
-backup/exportの成功dataはformat（sqlite / json / markdown）、destination（絶対パス）、database_id、graph_revision、snapshot_idを持つ。restoreの成功dataは§14と同じmeta内容とする。sourceは読み取りだけを行い、復元成功・失敗のどちらでも変更しない。
+migrateはプロジェクト名だけを持たない旧形式2（spec_version=0.3-demo-draft、rules_version=core-0.3.0）と現行形式3だけを扱う。未知の版・欠けた履歴・不正な記録は拒否し、黙って補わない。元ファイルを変更せず、新しいDBへproject_nameと現行の仕様・規則・保存形式を設定する。オブジェクト・版・来歴・commit・冪等性記録はそのまま保持する。現在のプロジェクト名を変更する場合も、現行形式3を入力に同じ明示移行を使う。過去の成功済み再送は保存した旧応答をそのまま返すが、未成功の旧rules_versionのbasisはRULES_CHANGEDとなり再照合を要する。
 
-論理スナップショットの最上位はformat="latis-snapshot"、format_version=2、meta、nodes、relations、revisions、provenance、commits、idempotency_recordsとする。6種類の記録は配列。検索索引や生成要約は含めず、復元時に再構成する。exportは一つの読み取りスナップショットを使う。
+```json
+{"format":"sqlite","source":"old-demo.sqlite","project_name":"ログ管理サービス"}
+```
 
-- metaはdatabase_id、graph_revision、snapshot_id、rules_version、spec_versionを含む。
+上はmigrate用である。backup/exportの成功dataはformat（sqlite / json / markdown）、destination（絶対パス）、database_id、graph_revision、snapshot_idを持つ。restore/migrateの成功dataは§14と同じmeta内容とする。sourceは読み取りだけを行い、復元成功・失敗のどちらでも変更しない。
+
+論理スナップショットの最上位はformat="latis-snapshot"、format_version=3、meta、nodes、relations、revisions、provenance、commits、idempotency_recordsとする。6種類の記録は配列。検索索引や生成要約は含めず、復元時に再構成する。exportは一つの読み取りスナップショットを使う。
+
+- metaはproject_name、database_id、graph_revision、snapshot_id、rules_version、spec_versionを必須とする。
 - nodes/relationsは現在の保存内容。Nodeのlocator/content_hash/evidence、およびRelationのbasis_refsを含む。導出されたscope_ids、basis_status、診断は含めない。
 - revisions/provenanceは過去の完全な内容を含む。
 - commitsの要素はgraph_revision、snapshot_id、created_at、change_refs、membership_changes、provenance_idを持つ。初期commitは変更配列が空でprovenance_id=null。
@@ -1104,7 +1116,7 @@ backup/exportの成功dataはformat（sqlite / json / markdown）、destination�
 
 復元はID、版、来歴、commitの同一性を保持する。参照整合性、最新レコードと履歴の対応、metaとcommitの対応、evidence.subject_refsの対象IDと過去版の対応を検証し、不正な部分だけを取り除いて成功扱いにしない。現在の対象版と古い観測版が異なることは正当な履歴であり、復元時に現在版へ書き換えたり、古い観測を捨てたりしない。過去のconfirmed関係が現在changedであることも許す。
 
-JSONはformat="latis-snapshot"かつformat_version=2、本版のspec_version/rules_versionだけを受理する。format_version=1を含む未対応形式・版は400 UNSUPPORTED_FORMATとし、自動移行しない。同じくSQLite restoreは本版と整合する既知のDB形式だけを受理する。対応形式の内部に不正なフィールドや参照がある場合は400 INVALID_DATABASEとする。新しいDBファイルが完成してから利用可能にし、失敗した復元先を通常操作で開かない。
+通常のrestoreはformat="latis-snapshot"かつformat_version=3、本版のspec_version/rules_versionだけを受理する。format_version=1・2を含む未対応形式・版は400 UNSUPPORTED_FORMATとし、自動移行しない。形式2は名前を指定したmigrateでのみ扱う。同じくSQLite restoreは本版と整合する既知のDB形式だけを受理する。対応形式の内部に不正なフィールドや参照がある場合は400 INVALID_DATABASEとする。新しいDBファイルが完成してから利用可能にし、失敗した復元先を通常操作で開かない。
 
 復元による履歴の巻き戻し後は、§3・§10のsnapshot_id確認で古いbasis/cursorを検出する。複数のコピーを別々に更新してマージする操作は本版に含めない。
 
@@ -1137,3 +1149,19 @@ node_idsとscope_idsは同時指定できない。両方省略した場合は全
 4. index.mdにdatabase_id、graph_revision、snapshot_id、spec_version、選択条件と、ID昇順のノード一覧（ID・title・kind・lifecycle・相対ファイルリンク）を記す。参照先が選択範囲外なら、生成されていないファイルへのリンクを作らずIDで示す。
 
 投影は読み取り専用であり、編集してもDBは更新されない。Markdownをrestoreへ入力すること、Markdown import、項目同期は本版に含めない。DBを復元するには§16.2の完全なJSONかSQLiteバックアップを使う。
+
+### 16.4 展示UIからのScope書き出し
+
+展示用Agreement Explorerは、1スコープにつき1つのMarkdownを直接ダウンロードできるようにする。ファイル名はオブジェクトIDを使うS-3.md等とし、ZIPや別のメタデータファイルへ分割しない。Core CLIの§16.3とは別の、人が読むためのレンダーである。
+
+- 選択の基準は当該Scopeへの直接所属。全kind・全lifecycleを保持し、検索・折畳みで対象を変えない。子Scopeを暗黙に追加しない。
+- Scope番号・名前を最上位見出しとし、PurposeへScopeの原文、Requirementsへ採択済み合意をまとめる。各要件の見出しは「Requirement: A-1 タイトル」の形式とする。未採択・終了した合意はOther Agreementsへ状態付きで分け、ほかの種類はContextへ番号付きで収録する。
+- 合意の原文を改変せず、所属・実関係・状態・根拠版を人が読める形で示す。保存されたactive/confirmed supportsで結ばれる理由も参照文脈として同じ文書へ収録する。参照文脈をScope所属として扱わない。文書内の番号リンクは実在する節だけを指し、収録外は番号と名前による参照とする。未登録のシナリオや理由を生成してはならない。
+- 出力を画面のdatabase_id・graph_revision・snapshot_idに固定し、REPLAY中はその時点を使う。DB切替や分岐で別内容を出してはならない。
+- 各項目のHTMLコメントlatis-nodeにnumber、id、revision_id、kind、lifecycle、scope_ids、roleを埋め込む。roleはdirectまたはcontext。Scopeと文書の基準版はlatis-source、関係のid・revision_id・端点と番号はlatis-relationsに記す。コメントはJSONで、元のid・版をオブジェクトIDへ置換しない。原文をコメント内へ二重に保存しない。
+- この識別情報は将来の編集・取り込みで対象と元版を特定するためのもの。Markdown importの採否と更新契約はM6-05で扱い、現在の読取専用出力を取り込み実装済みとはしない。
+- 0件でもScopeのPurposeと空のRequirementsを持つ1ファイルを返す。失敗は画面へ示し、DBを作成・更新せず、ブラウザーからサーバーの任意出力パスを指定させない。
+
+見出し構成は[OpenSpecのSpec Format](https://github.com/Fission-AI/OpenSpec/blob/main/docs/concepts.md#spec-format)を参考にする。今後、ADR・OpenSpec風仕様・説明文等のレンダー形式を細かく設定する画面を追加予定。現在のデモは上記の固定テンプレートを用いる。
+
+これはtools/graph_demoの閲覧用HTTP補助であり、Coreの9操作、保守CLIの引数・応答・保存形式を変更しない。

@@ -1,6 +1,6 @@
 # LATIS Demo Guide
 
-- 版: `v0.3-demo-draft`
+- 版: `v0.3-demo-draft.1`
 - 作成日: 2026-11-04（日本時間）
 - 対象日: 2026-11-07（日本時間）
 - 状態: 展示の実装・準備・確認手順。LATIS 本体の完成や性能達成を示す報告ではない。
@@ -77,14 +77,14 @@ API 実装後の初期化例。以下の DB パスは実演用の作業ディレ
 
 ```sh
 latis --db .latis/demo.sqlite init <<'JSON'
-{}
+{"project_name":"ログ管理サービス"}
 JSON
 latis --db .latis/demo.sqlite meta <<'JSON'
 {}
 JSON
 ```
 
-`spec_version=0.3-demo-draft`、`rules_version=core-0.3.0` と必須 capabilities を確認する。
+`spec_version=0.3-demo-draft.1`、`rules_version=core-0.3.1` と必須 capabilities を確認する。
 通常操作で DB がなければ自動生成されるとは考えない。古い保存形式の自動移行も展示対象にしない。
 
 ### 4.2 初期データを正規の操作で作る
@@ -114,7 +114,7 @@ latis --db .latis/demo.sqlite export <<'JSON'
 JSON
 ```
 
-JSON の `format_version` は 2。復元用の正本はこの JSON または一貫した SQLite backup であり、Markdown 投影ではない。
+JSON の `format_version` は 3。復元用の正本はこの JSON または一貫した SQLite backup であり、Markdown 投影ではない。
 初期コード・テスト、DB backup、採択・検証の応答、Guide、本体の版を同じ展示準備記録へ対応付ける。
 
 ## 5. 主実演の進行

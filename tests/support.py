@@ -27,7 +27,7 @@ class ContractCase(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.directory = Path(self.temp.name)
         self.engine = Engine(self.directory / "data.sqlite")
-        self.ok("init", {})
+        self.ok("init", {"project_name":"検証用プロジェクト"})
 
     def ok(self, operation, request, engine=None):
         response = (engine or self.engine).execute(operation, request)

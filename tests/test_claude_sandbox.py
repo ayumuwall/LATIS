@@ -79,9 +79,17 @@ class ClaudeSandboxTests(unittest.TestCase):
                                           json.dumps(dict(type="result", subtype="success", is_error=False)) + "\n")
             process.wait.return_value = 0
             process.poll.return_value = 0
+            rendered = []
+            def display(event):
+                event["display_only"] = True
+                rendered.append(event)
             # 起動は模擬する。macOS以外でも実在する親に作り、実際の隔離成功とは数えない。
             with patch("scripts.llm_acceptance.tempfile.TemporaryDirectory", side_effect=lambda **options: temporary_directory(prefix=options["prefix"], dir=temporary)) as scratch_directory, patch("scripts.llm_acceptance.settings_for", return_value={"sandbox": {"enabled": True}}), patch("scripts.llm_acceptance.claude_executable", return_value="/example/claude"), patch("scripts.llm_acceptance.subprocess.Popen", return_value=process) as launch:
-                run_claude(directory, prompt="架空の試験")
+                run_claude(directory, prompt="架空の試験", event_renderer=display)
+            saved = json.loads((directory / "initial-events.json").read_text())
+            self.assertTrue(all("display_only" not in event for event in saved))
+            self.assertTrue(all(event["display_only"] for event in rendered))
+            self.assertEqual([event["type"] for event in rendered],["system","result"])
             command = launch.call_args.args[0]
             self.assertIn("--safe-mode", command)
             self.assertIn("--restricted", command)

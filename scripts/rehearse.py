@@ -19,7 +19,7 @@ def sha(path):
     return "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def run(output):
+def run(output, *, body_transform=None):
     output = Path(output).absolute()
     output.mkdir(parents=True, exist_ok=False)
     source = ROOT / "docs/v0.3.0/examples"
@@ -44,6 +44,11 @@ def run(output):
     def apply(request, reason):
         nonlocal counter
         counter += 1
+        if body_transform is not None:
+            for operation in request["change_set"]["operations"]:
+                values = operation if operation["op"] == "create_node" else operation.get("set", {})
+                if "body" in values:
+                    values["body"] = body_transform(values["body"])
         consultation = call("consult", request)
         return call("apply", dict(**consultation["normalized_request"], basis=consultation["basis"],
                                   decision=dict(actor="agent:rehearsal", principal_refs=["human:demo-owner"],
@@ -84,7 +89,7 @@ def run(output):
         print(f"実テスト {label}: passed（3ケース）", flush=True)
         return response["created_refs"]["result"]["id"]
 
-    call("init", {})
+    call("init", {"project_name":"ログ管理サービス"})
     seed = json.loads((source / "seed_consult.request.json").read_text())
     for op in seed["change_set"]["operations"]:
         if op.get("content_hash"):

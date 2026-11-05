@@ -169,7 +169,7 @@ class EngineTests(ContractCase):
             self.error("export", dict(format="markdown", destination=str(self.directory / "view")), "UNSUPPORTED_FEATURE")
         self.error("search", dict(mode="hybrid"), "INVALID_REQUEST")
         self.error("export", dict(format="json", destination="x", node_ids=[]), "INVALID_REQUEST")
-        data = storage.initial()
+        data = storage.initial("検証用プロジェクト")
         data["format_version"] = 1
         source = self.directory / "old.json"
         source.write_text(json.dumps(data))
@@ -429,7 +429,7 @@ class EngineTests(ContractCase):
         self.assertFalse(missing.path.exists())
         unrelated = self.directory / "unrelated.sqlite"
         unrelated.write_bytes("既存ファイル".encode())
-        self.error("init", {}, "INVALID_DATABASE", Engine(unrelated))
+        self.error("init", {"project_name":"検証用プロジェクト"}, "INVALID_DATABASE", Engine(unrelated))
         self.assertEqual(unrelated.read_bytes(), "既存ファイル".encode())
         link = self.directory / "dangling.json"
         link.symlink_to(self.directory / "never-created.json")

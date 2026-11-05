@@ -405,7 +405,7 @@ class ContractTests(ContractCase):
 
     def test_cli_db_precedence_and_missing_database_not_created(self):
         environment_db = self.directory / "environment.sqlite"
-        self.ok("init", {}, Engine(environment_db))
+        self.ok("init", {"project_name":"検証用プロジェクト"}, Engine(environment_db))
         env = dict(os.environ, LATIS_DB=str(environment_db))
         command = [str(ROOT / "bin/latis"), "meta"]
         result = subprocess.run(command, input=b"{}", capture_output=True, env=env, cwd=self.directory)
@@ -418,7 +418,7 @@ class ContractTests(ContractCase):
         result = subprocess.run(command, input=b"{}", capture_output=True, env=env, cwd=child)
         self.assertEqual(result.returncode, 1)
         self.assertFalse((child / ".latis").exists())
-        result = subprocess.run([str(ROOT / "bin/latis"), "init"], input=b"{}", capture_output=True, env=env, cwd=child)
+        result = subprocess.run([str(ROOT / "bin/latis"), "init"], input=json.dumps({"project_name":"検証用プロジェクト"}).encode(), capture_output=True, env=env, cwd=child)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue((child / ".latis/latis.sqlite").is_file())
 
@@ -566,7 +566,7 @@ class ContractTests(ContractCase):
         self.error("consult", self.plan([node()], context=dict(basis_refs=[dict(type="node", id=value["id"], revision_id="missing")])), "REVISION_NOT_FOUND")
         self.error("consult", self.plan([node()], context=dict(scope_ids=[value["id"]])), "INVALID_REQUEST")
         self.error("consult", self.plan([node()], context=dict(anchor_node_ids=["missing"])), "TARGET_NOT_FOUND")
-        self.assertEqual(self.ok("init", {})["snapshot_id"], self.ok("meta", {})["snapshot_id"])
+        self.assertEqual(self.ok("init", {"project_name":"検証用プロジェクト"})["snapshot_id"], self.ok("meta", {})["snapshot_id"])
 
     def test_cursor_detects_restored_fork_with_equal_revision(self):
         a, b = self.create(), self.create()

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LATIS / Agreement Explorer</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/model.js" defer></script>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="masthead">
+    <div class="heading-identity"><div class="brand"><span class="brand-mark" aria-hidden="true">L</span><div><strong>LATIS</strong><span>Agreement Explorer</span></div></div><div class="project-heading"><span>PROJECT</span><strong id="project-name">接続中</strong></div></div>
+    <div class="connection"><a id="recorded-link" href="/recorded" hidden>収録映像</a><strong id="mode" role="status">CONNECTING</strong><span id="revision">正本へ接続中</span><span id="observed">—</span></div>
+  </header>
+  <main>
+    <section class="explorer" aria-label="合意エクスプローラー">
+      <div class="toolbar"><div><span class="eyebrow">EXPLORER / 合意台帳</span><p id="counts">展示用の架空プロジェクト</p><p id="export-status" role="status"></p></div>
+        <div class="controls"><label class="search">検索 <input id="filter" type="search" placeholder="合意・本文を絞り込む" autocomplete="off"></label><label class="check"><input id="all-states" type="checkbox"> 草稿・終了も表示</label><label class="check"><input id="reduce-motion" type="checkbox" checked> 動きを減らす</label><button id="start-replay" type="button">履歴を再生</button></div>
+      </div>
+      <div id="replay-controls" class="replay-controls" hidden><strong>REPLAY / 過去の実記録</strong><button id="replay-first" type="button">先頭</button><button id="replay-prev" type="button">前</button><button id="replay-toggle" type="button">再生</button><button id="replay-next" type="button">次</button><label>版 <input id="replay-range" type="range" min="0" value="0"></label><span id="replay-position"></span><button id="return-live" type="button">LIVEへ戻る</button></div>
+      <div class="column-head" aria-hidden="true"><span>SCOPE / 範囲</span><span>AGREEMENT / 合意</span><span>CONTEXT / 文脈</span></div>
+      <div id="rows" class="rows"><p class="empty">合意台帳を読み込んでいます。</p></div>
+      <div class="legend">□ 範囲　 ◎ 合意　 ○ 理由　 ? 問い <span>階層は分類です。優先・自動継承を表しません。</span></div>
+    </section>
+    <aside class="inspector" aria-label="Inspector / 詳細"><div class="inspector-head"><span class="eyebrow">INSPECTOR / 詳細</span><span id="selected-kind">—</span></div><div id="details"><p class="empty">合意を選ぶと、本文・理由・履歴を読めます。</p></div></aside>
+  </main>
+  <section class="stream" aria-label="確定した変更"><div class="stream-label">CHANGE LOG <span>実際のapply</span></div><div id="changes"><p>初回の読み込みでは、過去の変更を再演しません。</p></div></section>
+  <footer><span id="sync-status" role="status">ローカルDBへの接続を待っています</span><span id="database">展示用の架空設定 / READ ONLY</span></footer>
+</body>
+</html>

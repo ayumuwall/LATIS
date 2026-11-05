@@ -94,7 +94,7 @@ class P1Tests(ContractCase):
         self.assertGreater(result["validated_at_revision"], result["consulted_at_revision"])
 
     def test_P05_capabilities_and_disabled_optional_features(self):
-        for result in (self.ok("meta", {}), self.ok("init", {})):
+        for result in (self.ok("meta", {}), self.ok("init", {"project_name":"検証用プロジェクト"})):
             self.assertEqual(result["capabilities"], list(CAPABILITIES))
         with patch.object(Engine, "capabilities", tuple(OPERATIONS)):
             self.assertEqual(self.ok("meta", {})["capabilities"], OPERATIONS)
@@ -121,7 +121,7 @@ class P1Tests(ContractCase):
         self.assertEqual({metadata["kind"] for metadata, _ in self.projected(directory).values()}, KINDS)
         self.assertEqual({metadata["lifecycle"] for metadata, _ in self.projected(directory).values()}, STATES)
         metadata, _ = self.document(directory / "index.md")
-        self.assertEqual(metadata, {**{key: result[key] for key in ("database_id", "graph_revision", "snapshot_id")}, "spec_version": expected["meta"]["spec_version"], "selection": {}})
+        self.assertEqual(metadata, {**{key: result[key] for key in ("database_id", "graph_revision", "snapshot_id")}, "project_name": expected["meta"]["project_name"], "spec_version": expected["meta"]["spec_version"], "selection": {}})
 
     def test_P07_scope_selection_is_direct_and_can_be_empty(self):
         values = self.hierarchy()
@@ -298,7 +298,7 @@ class P1Tests(ContractCase):
         self.assertEqual(response.returncode, 0, response.stderr)
         self.assertEqual(len(self.projected(self.directory / "cli-view")), 1)
         data = self.snapshot()
-        self.assertEqual(data["format_version"], 2)
+        self.assertEqual(data["format_version"], 3)
         self.assertEqual(len(data["nodes"]), 11)
         self.error("export", dict(format="json", destination=str(self.directory / "subset"), scope_ids=[values["root"]["id"]]), "INVALID_REQUEST")
         source = self.directory / "full.json"

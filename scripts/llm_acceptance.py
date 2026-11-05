@@ -107,7 +107,7 @@ def prepare_case(directory, name, *, handover_source=None):
     workspace = directory / "workspace"
     workspace.mkdir()
     fixture = Fixture(workspace)
-    fixture.call("init", {})
+    fixture.call("init", {"project_name":"架空の利用試験"})
     task = "接続先の版と利用できる機能を確認して報告してください。DBやファイルは変更しないでください。"
     if name not in {"smoke", "discovery", "paging", "organize", "projection", "handover"}:
         for path in (ROOT / "docs/v0.3.0/examples/demo_project").glob("*.py"):
@@ -352,14 +352,14 @@ def render_event(event):
         print(f"[終了] subtype={event.get('subtype')} / is_error={event.get('is_error')} / turns={event.get('num_turns')} / ms={event.get('duration_ms')}", flush=True)
 
 
-def run_claude(directory, turn="initial", *, prompt=None, session=None, resume=False):
+def run_claude(directory, turn="initial", *, prompt=None, session=None, resume=False, event_renderer=None):
     # 短いパスならClaudeが既定の/tmpへ切り替えない。実行後は専用領域を削除する。
     settings_for(directory, ROOT)
     with tempfile.TemporaryDirectory(prefix="ls-", dir="/private/tmp") as runtime:
-        return _run_claude(directory, turn, prompt=prompt, session=session, resume=resume, runtime=runtime)
+        return _run_claude(directory, turn, prompt=prompt, session=session, resume=resume, runtime=runtime, event_renderer=event_renderer)
 
 
-def _run_claude(directory, turn, *, prompt, session, resume, runtime):
+def _run_claude(directory, turn, *, prompt, session, resume, runtime, event_renderer=None):
     directory = Path(directory).resolve()
     workspace = directory / "workspace"
     read_roots = {workspace, workspace.resolve(), ROOT / "docs/v0.3.0"}
@@ -398,7 +398,11 @@ def _run_claude(directory, turn, *, prompt, session, resume, runtime):
                 print(line, end="", flush=True)
                 continue
             events.append(event)
-            render_event(event)
+            # 保存する原記録は変えず、接続側が人向けの表示を提供できるようにする。
+            if event_renderer is None:
+                render_event(event)
+            else:
+                event_renderer(json.loads(line))
         code = process.wait()
     finally:
         timer.cancel()

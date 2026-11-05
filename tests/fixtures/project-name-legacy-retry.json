@@ -1,0 +1,54 @@
+{
+  "change_set": {
+    "operations": [
+      {
+        "expected_revision_id": "e584bad85747482ba37485f2c176f6ae",
+        "id": "fb15216e3ee24168a0d6af8629380472",
+        "op": "update_node",
+        "set": {
+          "lifecycle": "accepted"
+        }
+      }
+    ]
+  },
+  "context": {
+    "anchor_node_ids": [],
+    "basis_refs": [],
+    "exploration_note": "",
+    "scope_ids": []
+  },
+  "proposal": {
+    "body": "検査用の合意を採択する。",
+    "source_refs": [],
+    "title": "移行前の採択"
+  },
+  "basis": {
+    "change_digest": "sha256:ae2019a031343954ec6a3f9f84e9136e034541a76a7220d19e05a53cffa85b67",
+    "database_id": "33bc2a8fd2184a7a89d9df5c318364e8",
+    "exploration_note": "",
+    "graph_revision": 1,
+    "refs": [
+      {
+        "id": "fb15216e3ee24168a0d6af8629380472",
+        "revision_id": "e584bad85747482ba37485f2c176f6ae",
+        "type": "node"
+      }
+    ],
+    "rules_version": "core-0.3.0",
+    "schema_version": "basis-1",
+    "snapshot_id": "577b1a136acd4fa7987c55ccddb89fbc",
+    "watch": {
+      "node_ids": [
+        "fb15216e3ee24168a0d6af8629380472"
+      ],
+      "scope_ids": []
+    }
+  },
+  "decision": {
+    "actor": "test:legacy",
+    "reason": "履歴と成功応答の保持を検査する。",
+    "authority_ref": "移行検査用の架空データ生成",
+    "semantic_review": "ready"
+  },
+  "idempotency_key": "legacy-accept"
+}

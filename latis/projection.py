@@ -50,7 +50,7 @@ def write(directory, state, selection, nodes):
         path = directory / filename(node)
         path.parent.mkdir(exist_ok=True)
         path.write_bytes(("---\n" + canonical(metadata) + "\n---\n" + node["body"]).encode("utf-8"))
-    metadata = {key: state["meta"][key] for key in ("database_id", "graph_revision", "snapshot_id", "spec_version")}
+    metadata = {key: state["meta"][key] for key in ("project_name", "database_id", "graph_revision", "snapshot_id", "spec_version")}
     metadata["selection"] = selection
     rows = ["---", canonical(metadata), "---", "# LATIS Markdown投影", "",
             "読み取り専用の投影です。編集してもDBへ反映されません。", "",

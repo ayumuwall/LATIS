@@ -9,7 +9,7 @@
 ## 実行環境
 
 Python 3.12.xと標準ライブラリだけで動く。SQLite以外のサーバー、外部AI、HTTP、MCPは不要。
-`core-0.3.0` の検索規則にはUnicode 15.0.0を使う。同じrules_versionで検索結果が変わらないよう実行環境を固定し、異なるUnicodeデータ版は `RULES_CHANGED` で拒否する。Python更新時には正規化fixtureの確認と規則版の判断を行う。
+`core-0.3.1` の検索規則にはUnicode 15.0.0を使う。同じrules_versionで検索結果が変わらないよう実行環境を固定し、異なるUnicodeデータ版は `RULES_CHANGED` で拒否する。Python更新時には正規化fixtureの確認と規則版の判断を行う。
 
 仮想環境は使用する機種ごとに作り、CLI・検査の前に有効化する。別の機種から共有した `.venv` は、インタープリタの絶対パスが一致せず起動できない場合がある。2026-11-05のApple Silicon機では既定の `python3` が3.14だったため、Homebrew Python 3.12.11を明示した。
 
@@ -34,7 +34,7 @@ python --version
 
 ```sh
 ./bin/latis --db /tmp/latis-example.sqlite init <<'JSON'
-{}
+{"project_name":"ログ管理サービス"}
 JSON
 ./bin/latis --db /tmp/latis-example.sqlite meta <<'JSON'
 {}
@@ -52,7 +52,7 @@ DBの指定は `--db` → `LATIS_DB` → 作業ディレクトリの `.latis/lat
 ## 実装した範囲
 
 - 日常の9操作：`meta/search/detail/relation-detail/relations/history/save-draft/consult/apply`。
-- `init/backup/export/restore`。JSONは完全な `format_version=2` のスナップショット。
+- `init/backup/export/restore/migrate`。initにはproject_nameが必須。JSONは完全な `format_version=3` のスナップショット。
 - 8種類のノード、12種類の関係、状態遷移、型・循環・重複の検査。
 - 個別版、commit、snapshot、来歴、採択時の前提と判断理由。
 - 構造的な照合、基準時点からの変更前後の検査、短いSQLiteトランザクションによる原子的な更新。
@@ -96,6 +96,8 @@ JSON
 
 ## 展示の再現
 
+Agreement Explorerの画面、保持用の専用DB、起動・停止・リセット・実履歴REPLAYと当日のACT手順は [展示UI手順書](../tools/graph_demo/README.ja.md) を参照する。追加UIの検査と実Claudeの結果は [展示UI検証記録](GRAPH_DEMO_VERIFICATION.ja.md)。M5のコア受け入れと展示Dの実機確認を分けて管理する。映像収録はユーザー指示で必須対象外。
+
 出力先にはまだ存在しないディレクトリを指定する。元の題材は変更せず、作業コピーを作る。
 
 ```sh
@@ -119,6 +121,8 @@ FORCE_COLOR=1 python3 scripts/rehearse.py --output /tmp/latis-demo-run > /tmp/ag
 `summary.json` は独立したLLMセッションを検証済みと表示しない。これは既定シナリオの自動再現であり、ライブの対話デモとは区別する。
 
 実テストは実行ごとに空のPythonバイトコード参照先へ分離する。同じ秒・同じサイズの更新で古いpycが使われることを防ぎ、観測したソースと実行結果を対応させる。
+
+プロジェクト名のない旧形式2のDBは通常操作では開かない。`migrate`へsource・format・project_nameを指定して新しい出力先へ移行する（[API §16](v0.3.0/LATIS_API.md#16-cliの初期化と保守)）。元DB・ID・履歴・成功済み応答を保ち、画面のヘッダーは保存した名前を表示する。
 
 ## 復旧と実演リセット
 

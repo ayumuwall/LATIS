@@ -7,8 +7,10 @@ import re
 import uuid
 from datetime import datetime, timezone
 
-SPEC = "0.3-demo-draft"
-RULES = "core-0.3.0"
+SPEC = "0.3-demo-draft.1"
+RULES = "core-0.3.1"
+LEGACY_SPEC = "0.3-demo-draft"
+LEGACY_RULES = "core-0.3.0"
 KINDS = {"agreement", "proposal", "intent", "rationale", "question", "scope", "artifact", "task"}
 STATES = {"draft", "proposed", "accepted", "rejected", "superseded", "retired"}
 RELATIONS = {"contains", "scoped_to", "depends_on", "supports", "conflicts_with", "governs",
@@ -52,6 +54,14 @@ def obj(value, allowed, required=()):
 def string(value, empty=False):
     require(isinstance(value, str) and (empty or bool(value)), "文字列が不正です。")
     require(not any(0xD800 <= ord(c) <= 0xDFFF for c in value), "不正なUnicodeです。")
+    return value
+
+
+def project_name(value):
+    string(value)
+    require(value == value.strip() and bool(value.strip()) and len(value) <= 240
+            and not any(ord(c) < 32 or ord(c) == 127 for c in value),
+            "プロジェクト名は前後の空白・制御文字を含まない1〜240文字で指定してください。")
     return value
 
 

@@ -30,7 +30,7 @@ print(json.dumps(dict(module=latis.__file__, data=sysconfig.get_path("data"), py
     if package.resolve().is_relative_to(ROOT) or environment["dependencies"]:
         raise RuntimeError("配布物の外からの実行か、実行依存なしの条件を満たしません。")
     if environment["unicode"] != "15.0.0" or not environment["python"].startswith("3.12."):
-        raise RuntimeError("core-0.3.0にはPython 3.12 / Unicode 15.0.0が必要です。")
+        raise RuntimeError("この実装にはPython 3.12 / Unicode 15.0.0が必要です。")
     if environment["version"] != tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]["version"]:
         raise RuntimeError("導入した配布物とプロジェクトの版が一致しません。")
     bundled = Path(environment["data"]) / "share/latis/docs/v0.3.0"
@@ -58,7 +58,7 @@ print(json.dumps(dict(module=latis.__file__, data=sysconfig.get_path("data"), py
         consulted = call("consult", request)
         return call("apply", dict(**consulted["normalized_request"], basis=consulted["basis"], idempotency_key=key,
             decision=dict(actor="test:distribution", reason="配布物を専用データで検査する", authority_ref="M4の配布検査指示", semantic_review="ready")))
-    initialized = call("init", {})
+    initialized = call("init", {"project_name":"配布物検査"})
     assert {"search_descendants", "markdown_export"} <= set(initialized["capabilities"])
     seed = json.loads((bundled / "examples/seed_consult.request.json").read_text())
     refs = apply(seed, "distribution-seed")["created_refs"]

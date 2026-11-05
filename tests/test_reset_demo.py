@@ -95,7 +95,7 @@ class ResetDemoTests(unittest.TestCase):
         duplicate = self.directory / "duplicate"
         shutil.copytree(self.source, duplicate)
         snapshot = duplicate / "baseline.json"
-        snapshot.write_text('{"format_version":2,' + snapshot.read_text().lstrip()[1:])
+        snapshot.write_text('{"format_version":3,' + snapshot.read_text().lstrip()[1:])
         with self.assertRaises((Error, ValueError)):
             reset(duplicate, self.directory / "bad-json")
         self.assertFalse((self.directory / "bad-json").exists())
