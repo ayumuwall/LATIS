@@ -2,6 +2,8 @@
 
 この設定は `scripts/llm_acceptance.py` が起動するClaudeにだけ適用する。通常のClaudeセッション、Codex自身、ユーザーの設定ファイルは変更しない。LATIS Coreの機能ではなく、自動利用試験の実行環境である。
 
+M5ではmacOS 15.8.1／Intel／Python 3.12.0で拒否試験26項目を通し、同一構成による隔離下の全16ケース・17起動・CLI176操作を再確認した。結果と対象版は [M5検証記録](M5_VERIFICATION.ja.md) を参照する。以下の検証記録とApple Silicon機の事前確認は、それぞれの実施時点の対象・結果として保持する。
+
 ## 境界
 
 Claude CodeのBashサンドボックスを起動引数の `--settings` で必須にし、Bashとその子プロセスをmacOSのOS機能で制限する。Pythonテストが別のコマンドを起動した場合も、この制限を継承する。`--safe-mode` だけではこの隔離は有効にならない。[公式の適用範囲](https://code.claude.com/docs/en/sandboxing#what-runs-outside-the-sandbox) を参照。

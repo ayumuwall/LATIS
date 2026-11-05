@@ -310,7 +310,7 @@ LATIS は OpenSpec のような仕様主導ワークフローと概念的に近�
 
 ## 現在の状況
 
-Python 3.12のCLIでP0とP1を実装し、SQLite・JSONの退避と復元、読み取り専用Markdown投影、Claude CLIによる利用を検査しています。現行仕様の完全実装の最終判定はM5で行います。
+Python 3.12のCLIでP0とP1を実装し、SQLite・JSONの退避と復元、読み取り専用Markdown投影、隔離下のClaude CLI利用を検証しています。100ノードの代表データでは、変更と実テスト・新しい証拠の記録から、JSON復元後の独立セッションへの引き継ぎまで確認しています。現行Spec/APIの判定対象と合否は [M5検証記録](docs/M5_VERIFICATION.ja.md) を参照してください。
 
 導入・既定シナリオ・復旧は [実装ガイド](docs/IMPLEMENTATION.ja.md)、条項との対応は [仕様対応表](docs/SPEC_COVERAGE.ja.md)、対象版と結果は [受け入れ記録](docs/ACCEPTANCE.ja.md) を参照してください。FTS・推論検索・グラフUI等の構想は実装済みの機能に含めません。
 

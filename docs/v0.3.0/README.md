@@ -6,9 +6,9 @@
 **An Agreement Engine.**
 
 - Version: v0.3-demo-draft
-- Updated: 2026-11-04, Japan Standard Time
+- Updated: 2026-11-05, Japan Standard Time
 - Target: implementation specification for the exhibition on 2026-11-07 JST.
-- 状況：P0とP1の参照実装とClaude CLIでの利用確認が進んでいます。完全実装・性能達成の最終判定は未完了です。導入・結果・残作業はソースリポジトリの [実装ガイド](https://github.com/ayumuwall/LATIS/blob/main/docs/IMPLEMENTATION.ja.md)、[受け入れ記録](https://github.com/ayumuwall/LATIS/blob/main/docs/ACCEPTANCE.ja.md)、[タスク管理票](https://github.com/ayumuwall/LATIS/blob/main/docs/TASKS.ja.md) を参照してください。
+- 状況：P0とP1の参照実装に加え、隔離下のClaude CLI利用と代表データのJSON復元後の引き継ぎを検証しています。現行仕様の判定対象・合否は [M5検証記録](https://github.com/ayumuwall/LATIS/blob/main/docs/M5_VERIFICATION.ja.md)、導入は [実装ガイド](https://github.com/ayumuwall/LATIS/blob/main/docs/IMPLEMENTATION.ja.md)、以前の結果は [受け入れ記録](https://github.com/ayumuwall/LATIS/blob/main/docs/ACCEPTANCE.ja.md)、残作業は [タスク管理票](https://github.com/ayumuwall/LATIS/blob/main/docs/TASKS.ja.md) を参照してください。20万合意の性能は未測定です。
 - [日本語](README.ja.md)
 
 ## What we are building

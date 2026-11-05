@@ -4,9 +4,9 @@
 **An Agreement Engine.**
 
 - 版：v0.3-demo-draft
-- 更新日：2026-11-04（日本時間）
+- 更新日：2026-11-05（日本時間）
 - 対象：2026-11-07の展示に向けた実装仕様。
-- 状況：P0とP1の参照実装、Claude CLIでの利用確認が進んでいます。現行仕様の完全実装・性能達成の最終判定は未完了です。現在の導入手順はソースリポジトリの [実装ガイド](https://github.com/ayumuwall/LATIS/blob/main/docs/IMPLEMENTATION.ja.md)、確認結果は [受け入れ記録](https://github.com/ayumuwall/LATIS/blob/main/docs/ACCEPTANCE.ja.md)、残作業は [タスク管理票](https://github.com/ayumuwall/LATIS/blob/main/docs/TASKS.ja.md) を参照してください。
+- 状況：P0とP1の参照実装に加え、隔離下のClaude CLI利用と代表データのJSON復元後の引き継ぎを検証しています。現行仕様の判定対象・合否は [M5検証記録](https://github.com/ayumuwall/LATIS/blob/main/docs/M5_VERIFICATION.ja.md)、導入は [実装ガイド](https://github.com/ayumuwall/LATIS/blob/main/docs/IMPLEMENTATION.ja.md)、以前の結果は [受け入れ記録](https://github.com/ayumuwall/LATIS/blob/main/docs/ACCEPTANCE.ja.md)、残作業は [タスク管理票](https://github.com/ayumuwall/LATIS/blob/main/docs/TASKS.ja.md) を参照してください。20万合意の性能は未測定です。
 - [English](README.md)
 
 ## 何をつくるか

@@ -2,16 +2,16 @@
 
 規範は [v0.3.0のSpec](v0.3.0/LATIS_Spec.md) と [API](v0.3.0/LATIS_API.md)。本書は実装の起動・検査手順を説明する。安定版リリースや展示受け入れの完了を意味しない。
 
-日付に依存しない作業順、チェック付きの進捗、現行仕様の完全実装までの計画は [タスク管理票](TASKS.ja.md) で管理する。
+現行Spec/APIのP0＋P1はM5で受け入れを完了した。対象版・実施範囲・保証の限界は [M5検証記録](M5_VERIFICATION.ja.md)、完了した進捗と次期仕様の検討項目は [タスク管理票](TASKS.ja.md) で管理する。
 
-条項ごとの確認先は [仕様と実装の対応表](SPEC_COVERAGE.ja.md)、P0は [M1検証記録](M1_VERIFICATION.ja.md)、P1は [M2検証記録](M2_VERIFICATION.ja.md)、Claude CLIによる16ケースの利用確認は [M3検証記録](M3_VERIFICATION.ja.md) を参照する。運用・復旧・配布と現在の対象版は [受け入れ記録](ACCEPTANCE.ja.md) にまとめる。
+条項ごとの確認先は [仕様と実装の対応表](SPEC_COVERAGE.ja.md)、現行P0＋P1の同一構成による受け入れと判定は [M5検証記録](M5_VERIFICATION.ja.md) を参照する。P0の初期照合は [M1](M1_VERIFICATION.ja.md)、P1は [M2](M2_VERIFICATION.ja.md)、以前のClaude利用は [M3](M3_VERIFICATION.ja.md)、M4までの運用・復旧・配布は [受け入れ記録](ACCEPTANCE.ja.md) に保持する。
 
 ## 実行環境
 
 Python 3.12.xと標準ライブラリだけで動く。SQLite以外のサーバー、外部AI、HTTP、MCPは不要。
 `core-0.3.0` の検索規則にはUnicode 15.0.0を使う。同じrules_versionで検索結果が変わらないよう実行環境を固定し、異なるUnicodeデータ版は `RULES_CHANGED` で拒否する。Python更新時には正規化fixtureの確認と規則版の判断を行う。
 
-2026-11-05のApple Silicon環境では、既定の `python3` は3.14である。導入済みのHomebrew Python 3.12.11から、プロジェクト専用の仮想環境を用意した。以後のCLI・検査では先に有効化する。
+仮想環境は使用する機種ごとに作り、CLI・検査の前に有効化する。別の機種から共有した `.venv` は、インタープリタの絶対パスが一致せず起動できない場合がある。2026-11-05のApple Silicon機では既定の `python3` が3.14だったため、Homebrew Python 3.12.11を明示した。
 
 ```sh
 /opt/homebrew/opt/python@3.12/bin/python3.12 -m venv .venv
@@ -20,7 +20,15 @@ python -m pip --isolated install 'setuptools>=68' wheel
 python --version
 ```
 
-本体の実行依存は標準ライブラリだけで、setuptools・wheelはビルド用である。今回の環境と隔離の再確認結果は [M5前の確認記録](LLM_SANDBOX.ja.md#2026-11-05-apple-silicon環境でのm5前確認) を参照する。仮想環境を有効化する前の3.14で、既存のDBや検査を実行しない。
+M5のIntel機では、pyenvのPython 3.12.0から `/tmp/latis-m5-intel/env` を新しく作って検証した。Python 3.12が `python3.12` で起動できる環境では、次のように専用の未存在パスを使える。
+
+```sh
+python3.12 -m venv /tmp/latis-env
+source /tmp/latis-env/bin/activate
+python --version
+```
+
+本体の実行依存は標準ライブラリだけで、setuptools・wheelはビルド用である。Intel機の結果は [M5検証記録](M5_VERIFICATION.ja.md)、Apple Silicon機の事前確認は [サンドボックス記録](LLM_SANDBOX.ja.md#2026-11-05-apple-silicon環境でのm5前確認) に分ける。Python 3.12とUnicode 15.0.0を確認してから既存のDBや検査を実行する。
 
 リポジトリ直下から、インストールせず実行できる。
 
@@ -165,7 +173,7 @@ M3では16ケース・17呼出しを実行し、CLI操作182件、DBの前後、
 FORCE_COLOR=1 python3 -u scripts/llm_acceptance.py --output /tmp/latis-llm-run > /tmp/agent-logs/github.com-LATIS/e2e.log 2>&1
 ```
 
-出力先は未存在の専用ディレクトリを使う。`log-window` はmacOSのアプリ操作ができる権限で開き、Claudeも既存のログインを利用できる環境から実行する。必要なツールを文書と専用作業コピー・固定コマンドへ限定し、操作・応答・終了結果を同じiTerm2ウインドウへ逐次表示する。ケースの定義・許可範囲・判定方法は [M3利用検査](M3_CASES.ja.md)、実際の結果はM3検証記録を参照する。対象版を固定した最終受け入れと実展示環境の確認はM4〜M5で行う。
+出力先は未存在の専用ディレクトリを使う。`log-window` はmacOSのアプリ操作ができる権限で開き、Claudeも既存のログインを利用できる環境から実行する。必要なツールを文書と専用作業コピー・固定コマンドへ限定し、操作・応答・終了結果を同じiTerm2ウインドウへ逐次表示する。ケースの定義・許可範囲・判定方法は [M3利用検査](M3_CASES.ja.md)、同一構成の隔離下16ケースの結果は [M5検証記録](M5_VERIFICATION.ja.md) を参照する。展示当日の起動・接続確認はDemo Guideに従う。
 
 `AGENTS.md` と [LLM Guide](v0.3.0/LATIS_LLM_Guide.md) から利用方法を辿れる。展示用セッションの開始指示には、実際の絶対パスで次を渡す。
 
@@ -177,3 +185,28 @@ FORCE_COLOR=1 python3 -u scripts/llm_acceptance.py --output /tmp/latis-llm-run >
 初期状態で「ログを48時間に」と依頼し、必要な対象の打診だけが行われるかを確認する。次に、最初から「通常ログだけ48時間、監査ログは変更しない」と指示し、同じ許可を取り直さないことを確認する。
 別セッションにはGuide・CLI・DB・作業場所だけを渡す。48時間という答えや前の会話を渡さず、通常ログの期間・理由、監査ログ、現物と検証対象版を説明できるかを記録する。
 通信障害時は `responses.json` と実テストログを使う保存結果の説明へ切り替え、ライブと区別する。11/6の機能・データの固定と11/7の起動確認は [Demo Guide](v0.3.0/LATIS_Demo_Guide.md) に従う。
+
+## 代表データでの受け入れ
+
+`scripts/verify_representative.py` は、架空の100ノードを通常のconsult/apply/save-draftで準備する。未分類メモ、複数Scopeの通常ログ合意、未採択の案とcandidate関係、条件付き例外、無関係の未解決事項、コード・テストと旧証拠を含む。LLMの依頼に変更後の答えや前の会話を埋め込まず、既存の必須隔離・restricted・Opus 5.5 / highを使用する。先に隔離拒否試験を通し、ログをiTerm2で表示する。
+
+```sh
+~/.local/bin/log-window task --keep
+FORCE_COLOR=1 python3 -u scripts/verify_representative.py --output /tmp/latis-representative-new --stage prepare > /tmp/agent-logs/github.com-LATIS/task.log 2>&1
+~/.local/bin/log-window e2e --keep
+FORCE_COLOR=1 python3 -u scripts/verify_representative.py --output /tmp/latis-representative-new --stage change > /tmp/agent-logs/github.com-LATIS/e2e.log 2>&1
+```
+
+change終了後、`explicit/` の実応答・CLI操作・現物・実検査・DBをレビューし、その結果を同ディレクトリの `semantic-review.json` へ記録する。形式は `passed`（boolean）、`reviewer`、`notes`。機械検査の合格だけで `passed=true` とせず、実際に確認した根拠をnotesへ書く。不合格なら後続へ進まない。
+
+```sh
+FORCE_COLOR=1 python3 -u scripts/verify_representative.py --output /tmp/latis-representative-new --stage handover > /tmp/agent-logs/github.com-LATIS/e2e.log 2>&1
+```
+
+handoverは、完全JSONを新しいDBへ復元し全記録の一致を確認してから、前会話や要求ファイルを渡さない新しいClaudeセッションを起動する。`handover/` も同じ方法でレビューし、同ディレクトリへ `semantic-review.json` を保存する。
+
+```sh
+FORCE_COLOR=1 python3 -u scripts/verify_representative.py --output /tmp/latis-representative-new --stage report > /tmp/agent-logs/github.com-LATIS/task.log 2>&1
+```
+
+reportは無関係なノード・関係の保持、機械検査と両レビュー、CLI時間記録の件数を再確認する。`report.json` へ、Claudeセッション全体・APIの時間と、Python起動・IPCを含むLATIS CLIの経過時間を分けて保存する。100ノードの利用確認であり、20万合意の性能評価はM6で扱う。
